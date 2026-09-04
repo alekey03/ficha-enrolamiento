@@ -352,6 +352,10 @@ document.getElementById('deleteRecordButton').addEventListener('click', async ()
   const button = document.getElementById('deleteRecordButton');
   button.disabled = true;
   button.textContent = 'Eliminando…';
+  const { data: relatedFiles } = await supabaseClient
+    .from('archivos')
+    .select('ruta_privada')
+    .eq('ficha_id', selectedRecord.id);
   const { error } = await supabaseClient.from('fichas').delete().eq('id', selectedRecord.id);
   button.disabled = false;
   button.textContent = 'Eliminar';
@@ -360,6 +364,12 @@ document.getElementById('deleteRecordButton').addEventListener('click', async ()
     console.error(error);
     alert('No se pudo eliminar la ficha.');
     return;
+  }
+
+  const storagePaths = (relatedFiles || []).map(file => file.ruta_privada).filter(Boolean);
+  if (storagePaths.length) {
+    const { error: storageError } = await supabaseClient.storage.from('ficha-archivos').remove(storagePaths);
+    if (storageError) console.error('No se pudieron retirar algunos archivos del almacenamiento:', storageError);
   }
 
   recordModal.close();
@@ -397,7 +407,116 @@ async function loadCurrentProfile(userId) {
   return true;
 }
 
+function dashboardCategory(value, fallback = 'No registrado') {
+  const clean = String(value ?? '').trim();
+  if (!clean) return fallback;
+  return clean.toLocaleLowerCase('es').replace(/(^|\s)\S/g, letter => letter.toLocaleUpperCase('es'));
+}
+
+function countBy(records, selector) {
+  return records.reduce((counts, record) => {
+    const key = selector(record);
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function renderBarChart(elementId, counts, limit = 8) {
+  const container = document.getElementById(elementId);
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) {
+    container.innerHTML = '<div class="chart-empty">Todavía no hay información para mostrar.</div>';
+    return;
+  }
+
+  let displayed = entries;
+  if (entries.length > limit) {
+    const remaining = entries.slice(limit - 1).reduce((sum, entry) => sum + entry[1], 0);
+    displayed = [...entries.slice(0, limit - 1), ['Otros', remaining]];
+  }
+  const maximum = Math.max(...displayed.map(entry => entry[1]), 1);
+  container.innerHTML = displayed.map(([label, value]) => `
+    <div class="bar-row" title="${escapeHtml(label)}: ${value}">
+      <span class="bar-label">${escapeHtml(label)}</span>
+      <span class="bar-track"><i class="bar-fill" style="width:${Math.max(3, (value / maximum) * 100)}%"></i></span>
+      <strong class="bar-value">${value}</strong>
+    </div>`).join('');
+}
+
+function recordAge(record) {
+  const hasSavedAge = record.edad_registro !== null && record.edad_registro !== '';
+  const savedAge = Number(record.edad_registro);
+  if (hasSavedAge && Number.isFinite(savedAge) && savedAge >= 0) return savedAge;
+  if (!record.fecha_nacimiento) return null;
+  const birth = new Date(`${record.fecha_nacimiento}T00:00:00`);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  if (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate())) age -= 1;
+  return age >= 0 ? age : null;
+}
+
+function ageRange(record) {
+  const age = recordAge(record);
+  if (age === null) return 'No registrado';
+  if (age <= 12) return '0–12 años';
+  if (age <= 17) return '13–17 años';
+  if (age <= 29) return '18–29 años';
+  if (age <= 44) return '30–44 años';
+  if (age <= 59) return '45–59 años';
+  return '60 años a más';
+}
+
+async function loadDashboard() {
+  const dashboardStatus = document.getElementById('dashboardStatus');
+  dashboardStatus.textContent = 'Consultando información…';
+  dashboardStatus.classList.add('visible');
+
+  const records = [];
+  const pageSize = 1000;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabaseClient
+      .from('fichas')
+      .select('nacionalidad, edad_registro, fecha_nacimiento, grado_instruccion, estado_civil, creado_en')
+      .range(from, from + pageSize - 1);
+    if (error) {
+      console.error(error);
+      dashboardStatus.textContent = 'No se pudo cargar el resumen. Verifique su conexión e inténtelo nuevamente.';
+      return;
+    }
+    records.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+
+  const total = records.length;
+  const peruvians = records.filter(record => /per[uú]/i.test(String(record.nacionalidad || ''))).length;
+  const minors = records.filter(record => {
+    const age = recordAge(record);
+    return age !== null && age < 18;
+  }).length;
+  const now = new Date();
+  const currentMonth = records.filter(record => {
+    if (!record.creado_en) return false;
+    const created = new Date(record.creado_en);
+    return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth();
+  }).length;
+  const percent = value => total ? `${Math.round((value / total) * 100)}% del total` : '0% del total';
+
+  document.getElementById('dashboardTotal').textContent = total.toLocaleString('es-PE');
+  document.getElementById('dashboardPeruvians').textContent = peruvians.toLocaleString('es-PE');
+  document.getElementById('dashboardPeruviansPercent').textContent = percent(peruvians);
+  document.getElementById('dashboardMinors').textContent = minors.toLocaleString('es-PE');
+  document.getElementById('dashboardMinorsPercent').textContent = percent(minors);
+  document.getElementById('dashboardMonth').textContent = currentMonth.toLocaleString('es-PE');
+
+  renderBarChart('nationalityChart', countBy(records, record => dashboardCategory(record.nacionalidad)));
+  renderBarChart('ageChart', countBy(records, ageRange));
+  renderBarChart('educationChart', countBy(records, record => dashboardCategory(record.grado_instruccion)));
+  renderBarChart('civilStatusChart', countBy(records, record => dashboardCategory(record.estado_civil)));
+  dashboardStatus.classList.remove('visible');
+}
+
 const pageTitles = {
+  dashboardView: ['RESUMEN', 'Dashboard de víctimas'],
   formView: ['NUEVO REGISTRO', 'Ficha voluntaria de identificación'],
   recordsView: ['CONSULTA', 'Registros de enrolamiento']
   ,usersView: ['ADMINISTRACIÓN', 'Gestión de usuarios']
@@ -408,13 +527,14 @@ function resetMainView() {
   editingRecordCode = null;
   selectedRecord = null;
   form.reset();
-  document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === 'formView'));
-  document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.view === 'formView'));
-  document.getElementById('pageEyebrow').textContent = pageTitles.formView[0];
-  document.getElementById('pageHeading').textContent = pageTitles.formView[1];
+  document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === 'dashboardView'));
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.view === 'dashboardView'));
+  document.getElementById('pageEyebrow').textContent = pageTitles.dashboardView[0];
+  document.getElementById('pageHeading').textContent = pageTitles.dashboardView[1];
   document.getElementById('cancelEditButton').classList.add('hidden-control');
   registerButton.textContent = 'Registrar ficha';
   status.textContent = '';
+  if (currentProfile) loadDashboard();
 }
 
 document.getElementById('loginForm').addEventListener('submit', async event => {
@@ -466,7 +586,10 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 supabaseClient.auth.getSession().then(({ data }) => {
   if (!data.session) return;
   loadCurrentProfile(data.session.user.id).then(profileLoaded => {
-    if (profileLoaded) loginScreen.classList.add('hidden');
+    if (profileLoaded) {
+      resetMainView();
+      loginScreen.classList.add('hidden');
+    }
   });
 });
 
@@ -590,12 +713,14 @@ document.querySelectorAll('[data-view]').forEach(button => {
     document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.view === target));
     document.getElementById('pageEyebrow').textContent = pageTitles[target][0];
     document.getElementById('pageHeading').textContent = pageTitles[target][1];
+    if (target === 'dashboardView') loadDashboard();
     if (target === 'recordsView') loadRecords();
     if (target === 'usersView') loadUsers();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
 
+document.getElementById('refreshDashboard').addEventListener('click', loadDashboard);
 document.getElementById('recordSearchButton').addEventListener('click', loadRecords);
 document.getElementById('recordSearch').addEventListener('keydown', event => {
   if (event.key === 'Enter') loadRecords();

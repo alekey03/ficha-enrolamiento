@@ -12,7 +12,7 @@
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
-    <div class="login-brand"><span class="shield">FE</span><strong>Sistema de enrolamiento</strong><small>Acceso institucional seguro</small></div>
+    <div class="login-brand"><img class="institution-logo" src="assets/logo-diriptim.png" alt="Escudo DIRIPTIM PNP"><strong>Sistema de enrolamiento</strong><small>Acceso institucional seguro</small></div>
     <form class="login-card" id="loginForm">
       <span class="login-lock">🔒</span>
       <h1>Iniciar sesión</h1>
@@ -26,9 +26,10 @@
     <p class="login-footer">Uso exclusivo para personal autorizado</p>
   </section>
   <aside class="sidebar">
-    <div class="brand"><span class="shield">FE</span><div><strong>Enrolamiento</strong><small>Registro institucional</small></div></div>
+    <div class="brand"><img class="institution-logo" src="assets/logo-diriptim.png" alt="Escudo DIRIPTIM PNP"><div><strong>Enrolamiento</strong><small>Registro institucional</small></div></div>
     <nav aria-label="Navegación principal">
-      <button class="nav-item active" data-view="formView"><span>＋</span>Nueva ficha</button>
+      <button class="nav-item active" data-view="dashboardView"><span>⌂</span>Dashboard</button>
+      <button class="nav-item" data-view="formView"><span>＋</span>Nueva ficha</button>
       <button class="nav-item" data-view="recordsView"><span>▤</span>Registros</button>
       <button class="nav-item admin-only" data-view="usersView"><span>♙</span>Usuarios</button>
     </nav>
@@ -38,11 +39,32 @@
   <main>
     <header class="topbar">
       <button class="menu" aria-label="Abrir menú">☰</button>
-      <div class="page-title"><small id="pageEyebrow">NUEVO REGISTRO</small><h1 id="pageHeading">Ficha voluntaria de identificación</h1></div>
+      <div class="page-title"><small id="pageEyebrow">RESUMEN</small><h1 id="pageHeading">Dashboard de víctimas</h1></div>
       <button class="user" id="logoutBtn" title="Cerrar sesión"><span><strong>Administrador</strong><small>Cerrar sesión</small></span><div class="avatar">AD</div></button>
     </header>
 
-    <div id="formView" class="view active">
+    <section id="dashboardView" class="view dashboard-view active">
+      <div class="records-toolbar">
+        <div><h2>Resumen de víctimas registradas</h2><p>Indicadores consolidados de las fichas autorizadas para su unidad.</p></div>
+        <button class="secondary" id="refreshDashboard">↻ Actualizar</button>
+      </div>
+      <div class="privacy-banner"><span>🔒</span><div><strong>Información estadística protegida</strong><p>Los indicadores no muestran nombres y respetan los permisos asignados a cada cuenta.</p></div></div>
+      <div class="dashboard-stats">
+        <article><small>TOTAL DE VÍCTIMAS</small><strong id="dashboardTotal">—</strong><span>Fichas registradas</span></article>
+        <article><small>PERUANAS</small><strong id="dashboardPeruvians">—</strong><span id="dashboardPeruviansPercent">— del total</span></article>
+        <article><small>MENORES DE EDAD</small><strong id="dashboardMinors">—</strong><span id="dashboardMinorsPercent">— del total</span></article>
+        <article><small>REGISTRADAS ESTE MES</small><strong id="dashboardMonth">—</strong><span>Según fecha de creación</span></article>
+      </div>
+      <div id="dashboardStatus" class="dashboard-status">Consultando información…</div>
+      <div class="dashboard-grid">
+        <article class="card chart-card"><div class="chart-heading"><div><h3>Por nacionalidad</h3><p>Principales nacionalidades registradas</p></div></div><div id="nationalityChart" class="bar-chart"></div></article>
+        <article class="card chart-card"><div class="chart-heading"><div><h3>Por rango de edad</h3><p>Distribución por etapas de vida</p></div></div><div id="ageChart" class="bar-chart"></div></article>
+        <article class="card chart-card"><div class="chart-heading"><div><h3>Por grado de instrucción</h3><p>Nivel educativo declarado</p></div></div><div id="educationChart" class="bar-chart"></div></article>
+        <article class="card chart-card"><div class="chart-heading"><div><h3>Por estado civil</h3><p>Situación civil registrada</p></div></div><div id="civilStatusChart" class="bar-chart"></div></article>
+      </div>
+    </section>
+
+    <div id="formView" class="view">
     <div class="progress-wrap">
       <div class="progress-labels"><span><b>1</b> Datos personales</span><span><b>2</b> Características</span><span><b>3</b> Intervención</span><span><b>4</b> Fotografías</span></div>
       <div class="progress"><i></i></div>
