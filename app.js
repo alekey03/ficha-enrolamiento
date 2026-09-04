@@ -545,7 +545,14 @@ document.getElementById('loginForm').addEventListener('submit', async event => {
 
   const username = document.getElementById('username').value.trim().toLowerCase();
   const password = document.getElementById('password').value;
-  const accountUsername = ['admin', 'amejia'].includes(username) ? 'administrador' : username;
+  if (username !== 'amejia') {
+    loginError.textContent = 'Usuario o contraseña incorrectos.';
+    loginError.classList.add('show');
+    loginButton.disabled = false;
+    loginButton.textContent = 'Ingresar al sistema';
+    return;
+  }
+  const accountUsername = 'administrador';
   const email = `${accountUsername}@mejia.local`;
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
