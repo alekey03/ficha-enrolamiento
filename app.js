@@ -545,7 +545,7 @@ document.getElementById('loginForm').addEventListener('submit', async event => {
 
   const username = document.getElementById('username').value.trim().toLowerCase();
   const password = document.getElementById('password').value;
-  const accountUsername = username === 'admin' ? 'administrador' : username;
+  const accountUsername = ['admin', 'amejia'].includes(username) ? 'administrador' : username;
   const email = `${accountUsername}@mejia.local`;
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
@@ -644,7 +644,7 @@ async function loadUsers() {
   document.getElementById('operatorUsersCount').textContent = data.filter(profile => profile.rol === 'operador').length;
 
   const rows = users.map(profile => `<tr>
-    <td><strong>${escapeHtml(`${profile.nombres} ${profile.apellidos}`)}</strong><small>Usuario: ${escapeHtml(profile.usuario === 'administrador' ? 'admin' : profile.usuario)}</small></td>
+    <td><strong>${escapeHtml(`${profile.nombres} ${profile.apellidos}`)}</strong><small>Usuario: ${escapeHtml(profile.usuario === 'administrador' ? 'amejia' : profile.usuario)}</small></td>
     <td><span class="role ${profile.rol === 'administrador' ? 'admin' : ''}">${escapeHtml(profile.rol === 'administrador' ? 'admin' : profile.rol)}</span></td>
     <td>${escapeHtml(profile.unidad)}</td>
     <td><span class="state ${profile.activo ? '' : 'inactive'}">● ${profile.activo ? 'Activo' : 'Desactivado'}</span></td>
