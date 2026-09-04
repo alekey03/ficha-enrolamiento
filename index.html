@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-readable" />
+  <link rel="stylesheet" href="styles.css?v=20260904-nationality" />
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -87,7 +87,7 @@
             <label>Estado civil<select name="estadoCivil"><option value="">Seleccionar</option><option>Soltero/a</option><option>Casado/a</option><option>Conviviente</option><option>Divorciado/a</option><option>Viudo/a</option></select></label>
             <label>Nombre y apellidos de la madre<input name="madre"></label>
             <label>Nombre y apellidos del padre<input name="padre"></label>
-            <label>Nacionalidad<input name="nacionalidad"></label>
+            <label>Nacionalidad<select name="nacionalidad"><option value="">Seleccionar país</option><optgroup label="Principales"><option>Perú</option><option>Venezuela</option><option>Colombia</option><option>Ecuador</option><option>Bolivia</option><option>Brasil</option><option>Chile</option><option>Argentina</option></optgroup><optgroup label="Otros países"><option>Belice</option><option>Canadá</option><option>China</option><option>Costa Rica</option><option>Cuba</option><option>El Salvador</option><option>España</option><option>Estados Unidos</option><option>Guatemala</option><option>Guyana</option><option>Haití</option><option>Honduras</option><option>India</option><option>Italia</option><option>México</option><option>Nicaragua</option><option>Panamá</option><option>Paraguay</option><option>República Dominicana</option><option>Surinam</option><option>Uruguay</option><option>Otra nacionalidad</option></optgroup></select></label>
             <label>Ocupación<input name="ocupacion"></label>
             <label>Grado de instrucción<select name="instruccion"><option value="">Seleccionar</option><option>Sin estudios</option><option>Primaria</option><option>Secundaria</option><option>Técnico</option><option>Superior</option></select></label>
             <label>Teléfono<input name="telefono" type="tel"></label>
@@ -196,6 +196,6 @@
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20260904-fullwidth"></script>
+  <script src="app.js?v=20260904-nationality"></script>
 </body>
 </html>

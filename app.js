@@ -347,7 +347,9 @@ document.getElementById('editRecordButton').addEventListener('click', () => {
 
   Object.entries(fieldMap).forEach(([formName, column]) => {
     const field = form.elements.namedItem(formName);
-    if (field) field.value = selectedRecord[column] ?? '';
+    let value = selectedRecord[column] ?? '';
+    if (formName === 'nacionalidad' && /^peru$/i.test(value)) value = 'Perú';
+    if (field) field.value = value;
   });
   document.getElementById('consent').checked = true;
   editingRecordId = selectedRecord.id;
