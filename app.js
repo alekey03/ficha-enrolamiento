@@ -221,6 +221,14 @@ async function openRecord(recordId) {
 
   const images = await loadRecordImages(recordId);
   const mainPhoto = images.find(image => image.tipo === 'foto_principal');
+  const tattooImages = images.filter(image => image.tipo === 'tatuaje');
+  const tattooGallery = tattooImages.length
+    ? tattooImages.map((image, index) => `
+        <figure class="print-evidence-item">
+          <img src="${escapeHtml(image.url)}" alt="Fotografía de tatuaje o cicatriz ${index + 1}">
+          <figcaption>Imagen ${index + 1} · Tatuaje o cicatriz registrada</figcaption>
+        </figure>`).join('')
+    : '<div class="print-evidence-empty">No se adjuntaron fotografías de tatuajes o cicatrices.</div>';
 
   selectedRecord = record;
   document.getElementById('deleteRecordButton').classList.toggle('hidden-control', currentProfile?.rol !== 'administrador');
@@ -269,6 +277,7 @@ async function openRecord(recordId) {
   `;
 
   printSheet.innerHTML = `
+    <div class="print-page">
     <header class="print-header"><h1>Ficha voluntaria de identificación</h1><p>DIVINTRAP · DIRCTPTIM PNP &nbsp;|&nbsp; Código: ${escapeHtml(record.codigo)}</p></header>
     <div class="print-top">
       <div class="print-photo">${mainPhoto
@@ -295,6 +304,13 @@ async function openRecord(recordId) {
     </div></section>
     <p class="print-note">La presente información es proporcionada de forma voluntaria, observando el irrestricto respeto a los derechos humanos.</p>
     <div class="print-signatures"><div>Firma de la persona registrada</div><div>Firma del responsable</div></div>
+    </div>
+    <div class="print-page print-evidence-page">
+      <header class="print-header"><h1>Registro fotográfico</h1><p>Tatuajes y cicatrices &nbsp;|&nbsp; Código: ${escapeHtml(record.codigo)}</p></header>
+      <section class="print-evidence-description"><b>Descripción registrada</b><p>${escapeHtml(record.cicatrices_tatuajes || 'Sin descripción registrada')}</p></section>
+      <div class="print-evidence-grid count-${Math.min(tattooImages.length, 6)}">${tattooGallery}</div>
+      <p class="print-evidence-footer">Anexo fotográfico correspondiente a la ficha voluntaria de identificación.</p>
+    </div>
   `;
 }
 
@@ -379,7 +395,16 @@ document.getElementById('deleteRecordButton').addEventListener('click', async ()
 
 document.getElementById('closeRecordModal').addEventListener('click', () => recordModal.close());
 document.getElementById('closeRecordButton').addEventListener('click', () => recordModal.close());
-document.getElementById('printRecordButton').addEventListener('click', () => window.print());
+document.getElementById('printRecordButton').addEventListener('click', async () => {
+  const pendingImages = [...printSheet.querySelectorAll('img')]
+    .filter(image => !image.complete)
+    .map(image => new Promise(resolve => {
+      image.addEventListener('load', resolve, { once: true });
+      image.addEventListener('error', resolve, { once: true });
+    }));
+  await Promise.all(pendingImages);
+  window.print();
+});
 
 const SUPABASE_URL = 'https://dbneehfdhnzldzpxrmas.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_avyv1e1Q7if_TFfd-V3T7A_kTeMzm8C';
