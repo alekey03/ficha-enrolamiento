@@ -15,7 +15,7 @@
   .topbar{height:96px;padding:0 48px}
   .page-title small{font-size:11px}
   .page-title h1{font-size:27px}
-  .progress-wrap,form,.records-view{max-width:1480px}
+  .progress-wrap,form,.records-view{max-width:none;width:100%}
   .progress-labels{font-size:13px}
   .card{padding:34px;margin-bottom:22px}
   .hero-card{padding:0;grid-template-columns:300px 1fr}
@@ -69,7 +69,7 @@
 .security-note p{color:#bad1c4}
 .login-screen{background:linear-gradient(135deg,#0b2e20 0%,#18533a 60%,#26704e 100%)}
 .avatar{background:#174c35}
-.dashboard-view{max-width:1280px;margin:0 auto;padding:32px 28px}
+.dashboard-view{max-width:none;width:100%;margin:0;padding:32px 28px}
 .dashboard-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:18px}
 .dashboard-stats article{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;box-shadow:0 2px 7px rgba(16,42,67,.035)}
 .dashboard-stats article::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--blue)}
