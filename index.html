@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ficha de enrolamiento</title>
+  <meta name="description" content="Prototipo de registro de fichas de enrolamiento" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <div class="login-brand"><span class="shield">FE</span><strong>Sistema de enrolamiento</strong><small>Acceso institucional seguro</small></div>
+    <form class="login-card" id="loginForm">
+      <span class="login-lock">🔒</span>
+      <h1>Iniciar sesión</h1>
+      <p>Ingrese con la cuenta asignada por el administrador.</p>
+      <label>Nombre de usuario<input id="username" type="text" value="administrador" autocomplete="username" required></label>
+      <label>Contraseña<div class="password-field"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="togglePassword" aria-label="Mostrar contraseña">Ver</button></div></label>
+      <p class="login-error" id="loginError" role="alert"></p>
+      <button class="primary login-button" id="loginButton" type="submit">Ingresar al sistema</button>
+      <small class="demo-note">El acceso se valida de forma segura mediante Supabase.</small>
+    </form>
+    <p class="login-footer">Uso exclusivo para personal autorizado</p>
+  </section>
+  <aside class="sidebar">
+    <div class="brand"><span class="shield">FE</span><div><strong>Enrolamiento</strong><small>Registro institucional</small></div></div>
+    <nav aria-label="Navegación principal">
+      <button class="nav-item active" data-view="formView"><span>＋</span>Nueva ficha</button>
+      <button class="nav-item" data-view="recordsView"><span>▤</span>Registros</button>
+      <button class="nav-item admin-only" data-view="usersView"><span>♙</span>Usuarios</button>
+    </nav>
+    <div class="security-note"><span>🔒</span><div><strong>Información protegida</strong><p>Acceso exclusivo para personal autorizado.</p></div></div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <button class="menu" aria-label="Abrir menú">☰</button>
+      <div class="page-title"><small id="pageEyebrow">NUEVO REGISTRO</small><h1 id="pageHeading">Ficha voluntaria de identificación</h1></div>
+      <button class="user" id="logoutBtn" title="Cerrar sesión"><span><strong>Administrador</strong><small>Cerrar sesión</small></span><div class="avatar">AD</div></button>
+    </header>
+
+    <div id="formView" class="view active">
+    <div class="progress-wrap">
+      <div class="progress-labels"><span><b>1</b> Datos personales</span><span><b>2</b> Características</span><span><b>3</b> Intervención</span><span><b>4</b> Fotografías</span></div>
+      <div class="progress"><i></i></div>
+    </div>
+
+    <form id="enrolmentForm" novalidate>
+      <section class="card hero-card">
+        <div class="photo-upload">
+          <input type="file" id="photo" accept="image/jpeg,image/png,image/webp" hidden />
+          <label for="photo" id="photoLabel"><span class="camera">⌑</span><strong>Agregar fotografía</strong><small>Medio cuerpo, fondo blanco<br>JPG, PNG o WEBP · Compresión automática</small></label>
+        </div>
+        <div class="section-content">
+          <div class="section-heading"><span class="number">01</span><div><h2>Datos personales</h2><p>Complete la información de identificación de la persona.</p></div><span class="required-note">* Campos obligatorios</span></div>
+          <div class="grid cols-3">
+            <label>Apellido paterno *<input name="apellidoPaterno" required autocomplete="off"></label>
+            <label>Apellido materno *<input name="apellidoMaterno" required autocomplete="off"></label>
+            <label>Nombres *<input name="nombres" required autocomplete="off"></label>
+            <label>Fecha de nacimiento<input name="fechaNacimiento" type="date"></label>
+            <label>Edad<input name="edad" type="number" min="0" max="120" placeholder="Ej. 24"></label>
+            <label>Estado civil<select name="estadoCivil"><option value="">Seleccionar</option><option>Soltero/a</option><option>Casado/a</option><option>Conviviente</option><option>Divorciado/a</option><option>Viudo/a</option></select></label>
+            <label>Nombre y apellidos de la madre<input name="madre"></label>
+            <label>Nombre y apellidos del padre<input name="padre"></label>
+            <label>Nacionalidad<input name="nacionalidad"></label>
+            <label>Ocupación<input name="ocupacion"></label>
+            <label>Grado de instrucción<select name="instruccion"><option value="">Seleccionar</option><option>Sin estudios</option><option>Primaria</option><option>Secundaria</option><option>Técnico</option><option>Superior</option></select></label>
+            <label>Teléfono<input name="telefono" type="tel"></label>
+            <label class="span-2">Domicilio<input name="domicilio"></label>
+            <label>Correo electrónico<input name="correo" type="email"></label>
+            <label class="span-3">Redes sociales<input name="redes" placeholder="Indicar plataforma y usuario"></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading"><span class="number">02</span><div><h2>Características físicas y documento</h2><p>Registre únicamente datos observables y necesarios.</p></div></div>
+        <div class="grid cols-4">
+          <label>Estatura (m)<input name="estatura" type="number" min="0" max="3" step="0.01" placeholder="Ej. 1.65"></label>
+          <label>Cabello<input name="cabello"></label>
+          <label>Color de cabello<input name="colorCabello"></label>
+          <label>Características físicas<input name="caracteristicas"></label>
+          <label>Tipo de documento<select name="tipoDocumento"><option value="">Seleccionar</option><option>DNI</option><option>C.E.</option><option>Pasaporte</option><option>C.P.P.</option><option>Cédula</option></select></label>
+          <label>Número de documento<input name="numeroDocumento"></label>
+          <label class="span-2">Cicatrices o tatuajes<textarea name="marcas" rows="2" placeholder="Descripción y ubicación"></textarea></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading"><span class="number">03</span><div><h2>Datos de la intervención</h2><p>Información del operativo y del responsable del registro.</p></div></div>
+        <div class="grid cols-3">
+          <label class="span-2">Motivo de intervención<textarea name="motivo" rows="2"></textarea></label>
+          <label>Fecha<input name="fechaIntervencion" type="date"></label>
+          <label class="span-2">Lugar<input name="lugar"></label>
+          <label>Unidad<input name="unidad" value="DIVITP-DIRCTPTIM-PNP"></label>
+          <label>Grado del responsable<input name="grado"></label>
+          <label>Apellidos del responsable<input name="responsableApellidos"></label>
+          <label>Nombres del responsable<input name="responsableNombres"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading"><span class="number">04</span><div><h2>Archivos fotográficos</h2><p>Adjunte fotografías de marcas visibles y documentos cuando corresponda.</p></div></div>
+        <div class="upload-grid">
+          <label class="file-box"><input id="marksFiles" type="file" multiple accept="image/jpeg,image/png,image/webp"><span>＋</span><strong>Tatuajes y cicatrices</strong><small>Agregar imágenes · Se comprimen automáticamente</small></label>
+          <label class="file-box"><input id="documentsFiles" type="file" multiple accept="image/jpeg,image/png,image/webp"><span>＋</span><strong>Documentos de identidad</strong><small>Agregar anverso y reverso · Compresión automática</small></label>
+        </div>
+      </section>
+
+      <p class="consent"><input id="consent" type="checkbox" required><label for="consent">Confirmo que la información fue proporcionada voluntariamente y que el registro respeta los derechos humanos.</label></p>
+      <footer class="actions"><button type="button" class="secondary" id="clearBtn">Limpiar ficha</button><button type="button" class="secondary hidden-control" id="cancelEditButton">Cancelar edición</button><span id="status" role="status"></span><button type="submit" class="primary" id="registerButton">Registrar ficha</button></footer>
+    </form>
+    </div>
+
+    <section id="recordsView" class="view records-view">
+      <div class="records-toolbar">
+        <div><h2>Registros de enrolamiento</h2><p>Consulte las fichas registradas por el personal autorizado.</p></div>
+        <button class="primary" data-view="formView">＋ Nueva ficha</button>
+      </div>
+      <div class="privacy-banner"><span>🔒</span><div><strong>Acceso restringido</strong><p>Los resultados mostrados corresponden únicamente a la unidad autorizada para su cuenta.</p></div></div>
+      <div class="card records-card">
+        <div class="records-filters">
+          <label>Buscar registro<input id="recordSearch" type="search" placeholder="Nombre, código o documento"></label>
+          <label>Fecha desde<input id="recordDateFrom" type="date"></label>
+          <label>Fecha hasta<input id="recordDateTo" type="date"></label>
+          <button class="secondary" id="recordSearchButton">Buscar</button>
+        </div>
+        <div id="recordsResult"><div class="empty-state"><span>▤</span><h3>Cargando registros…</h3><p>Consultando la base de datos segura.</p></div></div>
+      </div>
+    </section>
+
+    <section id="usersView" class="view records-view">
+      <div class="records-toolbar">
+        <div><h2>Administración de usuarios</h2><p>Cree cuentas y controle el acceso del personal.</p></div>
+        <button class="primary" id="openUserModal">＋ Nuevo usuario</button>
+      </div>
+      <div class="stats-grid">
+        <article><small>USUARIOS ACTIVOS</small><strong id="activeUsersCount">—</strong><span>Cuentas habilitadas</span></article>
+        <article><small>ADMINISTRADORES</small><strong id="adminUsersCount">—</strong><span>Acceso completo</span></article>
+        <article><small>OPERADORES</small><strong id="operatorUsersCount">—</strong><span>Registro de fichas</span></article>
+      </div>
+      <div class="card users-card">
+        <div class="table-title"><div><h3>Usuarios del sistema</h3><p>Cuentas autorizadas para ingresar al sistema.</p></div><input id="userSearch" type="search" placeholder="Buscar usuario"></div>
+        <div id="usersResult"><div class="empty-state"><span>♙</span><h3>Cargando usuarios…</h3></div></div>
+      </div>
+    </section>
+  </main>
+  <dialog id="userModal">
+    <form class="modal-card" id="userForm">
+      <div class="modal-heading"><div><h2 id="userModalTitle">Crear nuevo usuario</h2><p>Asigne una cuenta y los permisos correspondientes.</p></div><button type="button" id="closeUserModal" aria-label="Cerrar">×</button></div>
+      <div class="grid cols-2">
+        <label>Nombres<input id="newUserNames" placeholder="Nombres del usuario" required></label>
+        <label>Apellidos<input id="newUserSurnames" placeholder="Apellidos del usuario" required></label>
+        <label class="span-2">Nombre de usuario<input id="newUsername" type="text" placeholder="Ej. operador03" pattern="[a-z0-9._-]{3,30}" autocomplete="off" required></label>
+        <label>Rol<select id="newUserRole" required><option value="operador">Operador</option><option value="supervisor">Supervisor</option><option value="administrador">Administrador</option></select></label>
+        <label>Unidad<input id="newUserUnit" placeholder="Unidad asignada" value="MEJIA" required></label>
+        <label class="span-2">Contraseña temporal<input id="newUserPassword" type="password" minlength="8" autocomplete="new-password" required></label>
+        <label class="user-active-control span-2"><span>Estado de la cuenta</span><select id="newUserActive"><option value="true">Activa</option><option value="false">Desactivada</option></select></label>
+      </div>
+      <p class="modal-help" id="userFormMessage">Use una contraseña temporal de al menos 8 caracteres y entréguela personalmente al usuario.</p>
+      <div class="modal-actions"><button class="secondary" id="cancelUserModal" type="button">Cancelar</button><button class="primary" id="saveUserButton" type="submit">Crear usuario</button></div>
+    </form>
+  </dialog>
+  <dialog id="recordModal" class="record-dialog">
+    <div class="record-modal-card">
+      <div class="modal-heading"><div><h2>Detalle de la ficha</h2><p id="recordModalCode">Consultando registro…</p></div><button id="closeRecordModal" aria-label="Cerrar">×</button></div>
+      <div id="recordDetail" class="record-detail"></div>
+      <div class="modal-actions"><button class="danger hidden-control" id="deleteRecordButton">Eliminar</button><button class="secondary" id="closeRecordButton">Cerrar</button><button class="secondary" id="editRecordButton">Editar ficha</button><button class="primary" id="printRecordButton">Exportar PDF</button></div>
+    </div>
+  </dialog>
+  <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
+  <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
