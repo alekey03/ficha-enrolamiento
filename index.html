@@ -16,8 +16,8 @@
     <form class="login-card" id="loginForm">
       <span class="login-lock">🔒</span>
       <h1>Iniciar sesión</h1>
-      <p>Ingrese con la cuenta asignada por el administrador.</p>
-      <label>Nombre de usuario<input id="username" type="text" value="administrador" autocomplete="username" required></label>
+      <p>Ingrese con la cuenta asignada por el admin.</p>
+      <label>Nombre de usuario<input id="username" type="text" value="admin" autocomplete="username" required></label>
       <label>Contraseña<div class="password-field"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="togglePassword" aria-label="Mostrar contraseña">Ver</button></div></label>
       <p class="login-error" id="loginError" role="alert"></p>
       <button class="primary login-button" id="loginButton" type="submit">Ingresar al sistema</button>
@@ -40,7 +40,7 @@
     <header class="topbar">
       <button class="menu" aria-label="Abrir menú">☰</button>
       <div class="page-title"><small id="pageEyebrow">RESUMEN</small><h1 id="pageHeading">Dashboard de víctimas</h1></div>
-      <button class="user" id="logoutBtn" title="Cerrar sesión"><span><strong>Administrador</strong><small>Cerrar sesión</small></span><div class="avatar">AD</div></button>
+      <button class="user" id="logoutBtn" title="Cerrar sesión"><span><strong>Admin</strong><small>Cerrar sesión</small></span><div class="avatar">AD</div></button>
     </header>
 
     <section id="dashboardView" class="view dashboard-view active">
@@ -161,7 +161,7 @@
       </div>
       <div class="stats-grid">
         <article><small>USUARIOS ACTIVOS</small><strong id="activeUsersCount">—</strong><span>Cuentas habilitadas</span></article>
-        <article><small>ADMINISTRADORES</small><strong id="adminUsersCount">—</strong><span>Acceso completo</span></article>
+        <article><small>ADMINS</small><strong id="adminUsersCount">—</strong><span>Acceso completo</span></article>
         <article><small>OPERADORES</small><strong id="operatorUsersCount">—</strong><span>Registro de fichas</span></article>
       </div>
       <div class="card users-card">
@@ -177,7 +177,7 @@
         <label>Nombres<input id="newUserNames" placeholder="Nombres del usuario" required></label>
         <label>Apellidos<input id="newUserSurnames" placeholder="Apellidos del usuario" required></label>
         <label class="span-2">Nombre de usuario<input id="newUsername" type="text" placeholder="Ej. operador03" pattern="[a-z0-9._-]{3,30}" autocomplete="off" required></label>
-        <label>Rol<select id="newUserRole" required><option value="operador">Operador</option><option value="supervisor">Supervisor</option><option value="administrador">Administrador</option></select></label>
+        <label>Rol<select id="newUserRole" required><option value="operador">Operador</option><option value="supervisor">Supervisor</option><option value="administrador">Admin</option></select></label>
         <label>Unidad<input id="newUserUnit" placeholder="Unidad asignada" value="MEJIA" required></label>
         <label class="span-2">Contraseña temporal<input id="newUserPassword" type="password" minlength="8" autocomplete="new-password" required></label>
         <label class="user-active-control span-2"><span>Estado de la cuenta</span><select id="newUserActive"><option value="true">Activa</option><option value="false">Desactivada</option></select></label>

@@ -402,7 +402,7 @@ async function loadCurrentProfile(userId) {
     element.classList.toggle('visible', data.rol === 'administrador');
   });
   document.querySelector('.user strong').textContent = `${data.nombres} ${data.apellidos}`;
-  document.querySelector('.user small').textContent = `${data.rol} · Cerrar sesión`;
+  document.querySelector('.user small').textContent = `${data.rol === 'administrador' ? 'admin' : data.rol} · Cerrar sesión`;
   document.querySelector('.avatar').textContent = data.nombres.slice(0, 1).toUpperCase() + data.apellidos.slice(0, 1).toUpperCase();
   return true;
 }
@@ -545,7 +545,8 @@ document.getElementById('loginForm').addEventListener('submit', async event => {
 
   const username = document.getElementById('username').value.trim().toLowerCase();
   const password = document.getElementById('password').value;
-  const email = `${username}@mejia.local`;
+  const accountUsername = username === 'admin' ? 'administrador' : username;
+  const email = `${accountUsername}@mejia.local`;
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   loginButton.disabled = false;
@@ -643,8 +644,8 @@ async function loadUsers() {
   document.getElementById('operatorUsersCount').textContent = data.filter(profile => profile.rol === 'operador').length;
 
   const rows = users.map(profile => `<tr>
-    <td><strong>${escapeHtml(`${profile.nombres} ${profile.apellidos}`)}</strong><small>Usuario: ${escapeHtml(profile.usuario)}</small></td>
-    <td><span class="role ${profile.rol === 'administrador' ? 'admin' : ''}">${escapeHtml(profile.rol)}</span></td>
+    <td><strong>${escapeHtml(`${profile.nombres} ${profile.apellidos}`)}</strong><small>Usuario: ${escapeHtml(profile.usuario === 'administrador' ? 'admin' : profile.usuario)}</small></td>
+    <td><span class="role ${profile.rol === 'administrador' ? 'admin' : ''}">${escapeHtml(profile.rol === 'administrador' ? 'admin' : profile.rol)}</span></td>
     <td>${escapeHtml(profile.unidad)}</td>
     <td><span class="state ${profile.activo ? '' : 'inactive'}">● ${profile.activo ? 'Activo' : 'Desactivado'}</span></td>
     <td><button class="table-action edit-user" data-user-id="${escapeHtml(profile.id)}" type="button">Editar</button></td>
