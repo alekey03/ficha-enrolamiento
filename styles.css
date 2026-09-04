@@ -15,10 +15,10 @@
   .topbar{height:96px;padding:0 48px}
   .page-title small{font-size:11px}
   .page-title h1{font-size:27px}
-  .progress-wrap,form,.records-view{max-width:1280px}
+  .progress-wrap,form,.records-view{max-width:1480px}
   .progress-labels{font-size:13px}
   .card{padding:34px;margin-bottom:22px}
-  .hero-card{padding:0;grid-template-columns:235px 1fr}
+  .hero-card{padding:0;grid-template-columns:300px 1fr}
   .section-content{padding:34px}
   .section-heading h2{font-size:19px}
   .section-heading p{font-size:13px}
