@@ -13,6 +13,8 @@ let editingRecordId = null;
 let editingRecordCode = null;
 let pendingMarkFiles = [];
 let pendingDocumentFiles = [];
+let dashboardRecords = [];
+let duplicateApprovedSignature = '';
 const capturePreviewUrls = { marksFiles: [], documentsFiles: [] };
 
 function escapeHtml(value) {
@@ -117,7 +119,7 @@ async function loadRecords() {
 
   let query = supabaseClient
     .from('fichas')
-    .select('id, codigo, apellido_paterno, apellido_materno, nombres, tipo_documento, numero_documento, fecha_intervencion, creado_en, unidad')
+    .select('id, codigo, apellido_paterno, apellido_materno, nombres, tipo_documento, numero_documento, fecha_nacimiento, edad_registro, nacionalidad, fecha_intervencion, creado_en, unidad')
     .order('creado_en', { ascending: false })
     .limit(100);
 
@@ -134,13 +136,23 @@ async function loadRecords() {
   }
 
   const search = document.getElementById('recordSearch').value.trim().toLocaleLowerCase('es');
-  const filtered = search ? data.filter(record => [
+  const nationality = document.getElementById('recordNationality').value;
+  const documentType = document.getElementById('recordDocumentType').value;
+  const unit = document.getElementById('recordUnit').value.trim().toLocaleLowerCase('es');
+  const minimumAge = document.getElementById('recordAgeMin').value;
+  const maximumAge = document.getElementById('recordAgeMax').value;
+  const filtered = data.filter(record => (!search || [
     record.codigo,
     record.apellido_paterno,
     record.apellido_materno,
     record.nombres,
     record.numero_documento
-  ].some(value => String(value ?? '').toLocaleLowerCase('es').includes(search))) : data;
+  ].some(value => String(value ?? '').toLocaleLowerCase('es').includes(search)))
+    && (!nationality || dashboardCategory(record.nacionalidad) === nationality)
+    && (!documentType || record.tipo_documento === documentType)
+    && (!unit || String(record.unidad || '').toLocaleLowerCase('es').includes(unit))
+    && (minimumAge === '' || (recordAge(record) !== null && recordAge(record) >= Number(minimumAge)))
+    && (maximumAge === '' || (recordAge(record) !== null && recordAge(record) <= Number(maximumAge))));
 
   if (!filtered.length) {
     result.innerHTML = '<div class="empty-state"><span>⌕</span><h3>No se encontraron registros</h3><p>Pruebe con otro nombre, código, documento o rango de fechas.</p></div>';
@@ -496,27 +508,51 @@ function ageRange(record) {
   return '60 años a más';
 }
 
-async function loadDashboard() {
-  const dashboardStatus = document.getElementById('dashboardStatus');
-  dashboardStatus.textContent = 'Consultando información…';
-  dashboardStatus.classList.add('visible');
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
 
-  const records = [];
-  const pageSize = 1000;
-  for (let from = 0; ; from += pageSize) {
-    const { data, error } = await supabaseClient
-      .from('fichas')
-      .select('nacionalidad, edad_registro, fecha_nacimiento, grado_instruccion, estado_civil, creado_en')
-      .range(from, from + pageSize - 1);
-    if (error) {
-      console.error(error);
-      dashboardStatus.textContent = 'No se pudo cargar el resumen. Verifique su conexión e inténtelo nuevamente.';
-      return;
-    }
-    records.push(...(data || []));
-    if (!data || data.length < pageSize) break;
+function dashboardFilteredRecords() {
+  const period = document.getElementById('dashboardPeriod').value;
+  const nationality = document.getElementById('dashboardNationality').value;
+  const fromValue = document.getElementById('dashboardDateFrom').value;
+  const toValue = document.getElementById('dashboardDateTo').value;
+  const now = new Date();
+  let from = null;
+  let to = null;
+  if (period === 'current') from = new Date(now.getFullYear(), now.getMonth(), 1);
+  if (/^\d+$/.test(period)) from = new Date(now.getFullYear(), now.getMonth() - Number(period) + 1, 1);
+  if (period === 'custom') {
+    if (fromValue) from = new Date(`${fromValue}T00:00:00`);
+    if (toValue) to = new Date(`${toValue}T23:59:59`);
   }
+  return dashboardRecords.filter(record => {
+    const created = record.creado_en ? new Date(record.creado_en) : null;
+    return (!nationality || dashboardCategory(record.nacionalidad) === nationality)
+      && (!from || (created && created >= from))
+      && (!to || (created && created <= to));
+  });
+}
 
+function renderMonthlyChart(records) {
+  const container = document.getElementById('monthlyChart');
+  const counts = countBy(records.filter(record => record.creado_en), record => monthKey(new Date(record.creado_en)));
+  const keys = Object.keys(counts).sort().slice(-12);
+  if (!keys.length) {
+    container.innerHTML = '<div class="chart-empty">Todavía no hay información para mostrar.</div>';
+    return;
+  }
+  const maximum = Math.max(...keys.map(key => counts[key]), 1);
+  container.innerHTML = keys.map(key => {
+    const [year, month] = key.split('-').map(Number);
+    const label = new Intl.DateTimeFormat('es-PE', { month: 'short', year: '2-digit' }).format(new Date(year, month - 1, 1));
+    return `<div class="month-column" title="${escapeHtml(label)}: ${counts[key]}"><strong>${counts[key]}</strong><span class="month-bar"><i style="height:${Math.max(8, (counts[key] / maximum) * 100)}%"></i></span><small>${escapeHtml(label.replace('.', ''))}</small></div>`;
+  }).join('');
+}
+
+function renderDashboard() {
+  const records = dashboardFilteredRecords();
+  const dashboardStatus = document.getElementById('dashboardStatus');
   const total = records.length;
   const peruvians = records.filter(record => /per[uú]/i.test(String(record.nacionalidad || ''))).length;
   const minors = records.filter(record => {
@@ -530,19 +566,54 @@ async function loadDashboard() {
     return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth();
   }).length;
   const percent = value => total ? `${Math.round((value / total) * 100)}% del total` : '0% del total';
-
   document.getElementById('dashboardTotal').textContent = total.toLocaleString('es-PE');
   document.getElementById('dashboardPeruvians').textContent = peruvians.toLocaleString('es-PE');
   document.getElementById('dashboardPeruviansPercent').textContent = percent(peruvians);
   document.getElementById('dashboardMinors').textContent = minors.toLocaleString('es-PE');
   document.getElementById('dashboardMinorsPercent').textContent = percent(minors);
   document.getElementById('dashboardMonth').textContent = currentMonth.toLocaleString('es-PE');
-
   renderBarChart('nationalityChart', countBy(records, record => dashboardCategory(record.nacionalidad)));
   renderBarChart('ageChart', countBy(records, ageRange));
   renderBarChart('educationChart', countBy(records, record => dashboardCategory(record.grado_instruccion)));
   renderBarChart('civilStatusChart', countBy(records, record => dashboardCategory(record.estado_civil)));
-  dashboardStatus.classList.remove('visible');
+  renderMonthlyChart(records);
+  dashboardStatus.textContent = `${total.toLocaleString('es-PE')} ficha${total === 1 ? '' : 's'} en el periodo seleccionado.`;
+  dashboardStatus.classList.toggle('visible', Boolean(document.getElementById('dashboardPeriod').value !== 'all' || document.getElementById('dashboardNationality').value));
+}
+
+async function loadDashboard() {
+  const dashboardStatus = document.getElementById('dashboardStatus');
+  dashboardStatus.textContent = 'Consultando información…';
+  dashboardStatus.classList.add('visible');
+
+  const records = [];
+  const pageSize = 1000;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabaseClient
+      .from('fichas')
+      .select('nacionalidad, edad_registro, fecha_nacimiento, grado_instruccion, estado_civil, creado_en, fecha_intervencion, unidad')
+      .range(from, from + pageSize - 1);
+    if (error) {
+      console.error(error);
+      dashboardStatus.textContent = 'No se pudo cargar el resumen. Verifique su conexión e inténtelo nuevamente.';
+      return;
+    }
+    records.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+
+  dashboardRecords = records;
+  const nationalitySelect = document.getElementById('dashboardNationality');
+  const recordNationality = document.getElementById('recordNationality');
+  const nationalities = [...new Set(records.map(record => dashboardCategory(record.nacionalidad)).filter(value => value !== 'No registrado'))].sort((a, b) => a.localeCompare(b, 'es'));
+  const options = '<option value="">Todas</option>' + nationalities.map(value => `<option>${escapeHtml(value)}</option>`).join('');
+  const selectedDashboardNationality = nationalitySelect.value;
+  const selectedRecordNationality = recordNationality.value;
+  nationalitySelect.innerHTML = options;
+  recordNationality.innerHTML = options;
+  nationalitySelect.value = selectedDashboardNationality;
+  recordNationality.value = selectedRecordNationality;
+  renderDashboard();
 }
 
 const pageTitles = {
@@ -575,14 +646,14 @@ document.getElementById('loginForm').addEventListener('submit', async event => {
 
   const username = document.getElementById('username').value.trim().toLowerCase();
   const password = document.getElementById('password').value;
-  if (username !== 'amejia') {
+  if (!username || username === 'admin' || username === 'administrador') {
     loginError.textContent = 'Usuario o contraseña incorrectos.';
     loginError.classList.add('show');
     loginButton.disabled = false;
     loginButton.textContent = 'Ingresar al sistema';
     return;
   }
-  const accountUsername = 'administrador';
+  const accountUsername = username === 'amejia' ? 'administrador' : username;
   const email = `${accountUsername}@mejia.local`;
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
@@ -759,6 +830,32 @@ document.querySelectorAll('[data-view]').forEach(button => {
 });
 
 document.getElementById('refreshDashboard').addEventListener('click', loadDashboard);
+document.getElementById('applyDashboardFilters').addEventListener('click', renderDashboard);
+document.getElementById('dashboardPeriod').addEventListener('change', event => {
+  const custom = event.target.value === 'custom';
+  document.getElementById('dashboardDateFrom').disabled = !custom;
+  document.getElementById('dashboardDateTo').disabled = !custom;
+});
+
+function dashboardFilterDescription() {
+  const period = document.getElementById('dashboardPeriod');
+  const nationality = document.getElementById('dashboardNationality').value || 'Todas las nacionalidades';
+  let periodText = period.options[period.selectedIndex].text;
+  if (period.value === 'custom') {
+    periodText = `${formatDate(document.getElementById('dashboardDateFrom').value)} al ${formatDate(document.getElementById('dashboardDateTo').value)}`;
+  }
+  return `${periodText} · ${nationality}`;
+}
+
+document.getElementById('exportDashboard').addEventListener('click', () => {
+  const report = document.getElementById('dashboardView').cloneNode(true);
+  report.querySelector('.records-toolbar')?.remove();
+  report.querySelector('.dashboard-filters')?.remove();
+  report.querySelector('.privacy-banner')?.remove();
+  report.querySelector('#dashboardStatus')?.remove();
+  printSheet.innerHTML = `<div class="print-page dashboard-report"><header class="dashboard-report-header"><img src="assets/logo-diriptim.png" alt=""><div><h1>Dashboard de víctimas</h1><p>${escapeHtml(dashboardFilterDescription())}</p></div><small>Generado: ${escapeHtml(new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short' }).format(new Date()))}</small></header>${report.innerHTML}<footer>Reporte estadístico protegido · Uso exclusivo para personal autorizado</footer></div>`;
+  window.print();
+});
 
 const formSteps = [...document.querySelectorAll('.form-step')];
 const progressStepLabels = [...document.querySelectorAll('.progress-labels [data-step-target]')];
@@ -859,6 +956,12 @@ form.addEventListener('reset', () => {
   setActiveFormStep(1);
 });
 document.getElementById('recordSearchButton').addEventListener('click', loadRecords);
+document.getElementById('clearRecordFilters').addEventListener('click', () => {
+  ['recordSearch', 'recordDateFrom', 'recordDateTo', 'recordNationality', 'recordDocumentType', 'recordAgeMin', 'recordAgeMax', 'recordUnit'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  loadRecords();
+});
 document.getElementById('recordSearch').addEventListener('keydown', event => {
   if (event.key === 'Enter') loadRecords();
 });
@@ -885,6 +988,56 @@ form.addEventListener('input', () => {
   status.textContent = `${completed} de ${required.length} campos obligatorios completos`;
 });
 
+function duplicateSignature(values) {
+  return [values.tipoDocumento, values.numeroDocumento, values.apellidoPaterno, values.apellidoMaterno, values.nombres, values.fechaNacimiento]
+    .map(value => String(value || '').trim().toLocaleLowerCase('es')).join('|');
+}
+
+async function findPossibleDuplicates(values) {
+  if (editingRecordId) return [];
+  const documentNumber = values.numeroDocumento?.trim();
+  let query = supabaseClient.from('fichas').select('id, codigo, apellido_paterno, apellido_materno, nombres, tipo_documento, numero_documento, fecha_nacimiento, fecha_intervencion, creado_en').limit(8);
+  if (documentNumber) {
+    query = query.eq('numero_documento', documentNumber);
+  } else {
+    query = query
+      .ilike('apellido_paterno', values.apellidoPaterno.trim())
+      .ilike('apellido_materno', values.apellidoMaterno.trim())
+      .ilike('nombres', values.nombres.trim());
+    if (values.fechaNacimiento) query = query.eq('fecha_nacimiento', values.fechaNacimiento);
+  }
+  const { data, error } = await query;
+  if (error) {
+    console.error(error);
+    return [];
+  }
+  return data || [];
+}
+
+function requestDuplicateConfirmation(matches) {
+  const modal = document.getElementById('duplicateModal');
+  document.getElementById('duplicateResults').innerHTML = matches.map(record => `<article><div><strong>${escapeHtml(`${record.apellido_paterno} ${record.apellido_materno}, ${record.nombres}`)}</strong><span>${escapeHtml(record.codigo)}</span></div><p>${escapeHtml(record.tipo_documento || 'Documento')} ${escapeHtml(record.numero_documento || 'no registrado')} · Nacimiento: ${escapeHtml(formatDate(record.fecha_nacimiento))} · Última intervención: ${escapeHtml(formatDate(record.fecha_intervencion))}</p></article>`).join('');
+  modal.showModal();
+  return new Promise(resolve => {
+    const finish = approved => {
+      modal.close();
+      document.getElementById('confirmDuplicate').removeEventListener('click', approve);
+      document.getElementById('cancelDuplicate').removeEventListener('click', cancel);
+      modal.removeEventListener('cancel', cancelDialog);
+      resolve(approved);
+    };
+    const approve = () => finish(true);
+    const cancel = () => finish(false);
+    const cancelDialog = event => {
+      event.preventDefault();
+      finish(false);
+    };
+    document.getElementById('confirmDuplicate').addEventListener('click', approve);
+    document.getElementById('cancelDuplicate').addEventListener('click', cancel);
+    modal.addEventListener('cancel', cancelDialog);
+  });
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!form.reportValidity()) return;
@@ -895,11 +1048,25 @@ form.addEventListener('submit', async event => {
     return;
   }
 
+  const values = Object.fromEntries(new FormData(form).entries());
+  const signature = duplicateSignature(values);
+  if (!editingRecordId && signature !== duplicateApprovedSignature) {
+    status.textContent = 'Verificando posibles registros anteriores…';
+    const matches = await findPossibleDuplicates(values);
+    if (matches.length) {
+      const approved = await requestDuplicateConfirmation(matches);
+      if (!approved) {
+        status.textContent = 'Registro pausado para revisar la coincidencia.';
+        return;
+      }
+      duplicateApprovedSignature = signature;
+    }
+  }
+
   registerButton.disabled = true;
   registerButton.textContent = 'Guardando…';
   status.textContent = 'Enviando datos de forma segura…';
 
-  const values = Object.fromEntries(new FormData(form).entries());
   const today = new Date();
   const codigo = `FIC-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
   const emptyToNull = value => value?.trim() || null;
@@ -965,6 +1132,7 @@ form.addEventListener('submit', async event => {
   const savedCode = editingRecordCode || codigo;
   editingRecordId = null;
   editingRecordCode = null;
+  duplicateApprovedSignature = '';
   form.reset();
   document.getElementById('cancelEditButton').classList.add('hidden-control');
   photoLabel.style.backgroundImage = '';

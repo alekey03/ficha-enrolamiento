@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-mobile-gallery" />
+  <link rel="stylesheet" href="styles.css?v=20260904-analytics" />
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -47,7 +47,14 @@
     <section id="dashboardView" class="view dashboard-view active">
       <div class="records-toolbar">
         <div><h2>Resumen de víctimas registradas</h2><p>Indicadores consolidados de las fichas autorizadas para su unidad.</p></div>
-        <button class="secondary" id="refreshDashboard">↻ Actualizar</button>
+        <div class="toolbar-actions"><button class="secondary" id="exportDashboard">⇩ Exportar PDF</button><button class="secondary" id="refreshDashboard">↻ Actualizar</button></div>
+      </div>
+      <div class="card dashboard-filters">
+        <label>Periodo<select id="dashboardPeriod"><option value="all">Todo el historial</option><option value="12" selected>Últimos 12 meses</option><option value="6">Últimos 6 meses</option><option value="3">Últimos 3 meses</option><option value="current">Mes actual</option><option value="custom">Rango personalizado</option></select></label>
+        <label>Nacionalidad<select id="dashboardNationality"><option value="">Todas</option></select></label>
+        <label>Desde<input id="dashboardDateFrom" type="date" disabled></label>
+        <label>Hasta<input id="dashboardDateTo" type="date" disabled></label>
+        <button class="primary" id="applyDashboardFilters">Aplicar filtros</button>
       </div>
       <div class="privacy-banner"><span>🔒</span><div><strong>Información estadística protegida</strong><p>Los indicadores no muestran nombres y respetan los permisos asignados a cada cuenta.</p></div></div>
       <div class="dashboard-stats">
@@ -62,6 +69,7 @@
         <article class="card chart-card"><div class="chart-heading"><div><h3>Por rango de edad</h3><p>Distribución por etapas de vida</p></div></div><div id="ageChart" class="bar-chart"></div></article>
         <article class="card chart-card"><div class="chart-heading"><div><h3>Por grado de instrucción</h3><p>Nivel educativo declarado</p></div></div><div id="educationChart" class="bar-chart"></div></article>
         <article class="card chart-card"><div class="chart-heading"><div><h3>Por estado civil</h3><p>Situación civil registrada</p></div></div><div id="civilStatusChart" class="bar-chart"></div></article>
+        <article class="card chart-card chart-wide"><div class="chart-heading"><div><h3>Evolución mensual</h3><p>Fichas registradas por mes en el periodo seleccionado</p></div></div><div id="monthlyChart" class="monthly-chart"></div></article>
       </div>
     </section>
 
@@ -145,10 +153,16 @@
       </div>
       <div class="privacy-banner"><span>🔒</span><div><strong>Acceso restringido</strong><p>Los resultados mostrados corresponden únicamente a la unidad autorizada para su cuenta.</p></div></div>
       <div class="card records-card">
-        <div class="records-filters">
+        <div class="records-filters advanced-record-filters">
           <label>Buscar registro<input id="recordSearch" type="search" placeholder="Nombre, código o documento"></label>
           <label>Fecha desde<input id="recordDateFrom" type="date"></label>
           <label>Fecha hasta<input id="recordDateTo" type="date"></label>
+          <label>Nacionalidad<select id="recordNationality"><option value="">Todas</option></select></label>
+          <label>Tipo de documento<select id="recordDocumentType"><option value="">Todos</option><option>DNI</option><option>C.E.</option><option>Pasaporte</option><option>C.P.P.</option><option>Cédula</option></select></label>
+          <label>Edad mínima<input id="recordAgeMin" type="number" min="0" max="120" placeholder="0"></label>
+          <label>Edad máxima<input id="recordAgeMax" type="number" min="0" max="120" placeholder="120"></label>
+          <label>Unidad<input id="recordUnit" type="search" placeholder="Todas las autorizadas"></label>
+          <button class="secondary" id="clearRecordFilters" type="button">Limpiar</button>
           <button class="secondary" id="recordSearchButton">Buscar</button>
         </div>
         <div id="recordsResult"><div class="empty-state"><span>▤</span><h3>Cargando registros…</h3><p>Consultando la base de datos segura.</p></div></div>
@@ -194,9 +208,17 @@
       <div class="modal-actions"><button class="danger hidden-control" id="deleteRecordButton">Eliminar</button><button class="secondary" id="closeRecordButton">Cerrar</button><button class="secondary" id="editRecordButton">Editar ficha</button><button class="primary" id="printRecordButton">Exportar PDF</button></div>
     </div>
   </dialog>
+  <dialog id="duplicateModal" class="duplicate-dialog">
+    <div class="modal-card">
+      <div class="modal-heading"><div><h2>Posible registro existente</h2><p>Revise las coincidencias antes de continuar.</p></div></div>
+      <div class="duplicate-warning"><span>⚠</span><div><strong>Esta persona podría haber sido enrolada anteriormente.</strong><p>Puede volver a registrarla si corresponde a una nueva intervención.</p></div></div>
+      <div id="duplicateResults" class="duplicate-results"></div>
+      <div class="modal-actions"><button class="secondary" id="cancelDuplicate" type="button">Volver y revisar</button><button class="primary" id="confirmDuplicate" type="button">Registrar de todas formas</button></div>
+    </div>
+  </dialog>
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20260904-mobile-gallery"></script>
+  <script src="app.js?v=20260904-analytics"></script>
 </body>
 </html>
