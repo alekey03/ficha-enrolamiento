@@ -69,6 +69,15 @@
 .security-note p{color:#bad1c4}
 .login-screen{background:linear-gradient(135deg,#0b2e20 0%,#18533a 60%,#26704e 100%)}
 .avatar{background:#174c35}
+.topbar{position:sticky;top:0;z-index:4}
+.progress-wrap{position:sticky;top:96px;z-index:3;background:var(--bg);margin-top:0;padding-top:22px;padding-bottom:18px;margin-bottom:0;box-shadow:0 8px 14px rgba(16,42,67,.06)}
+.progress-labels span{cursor:pointer;transition:color .2s ease}
+.progress-labels span.active{color:var(--blue);font-weight:700}
+.progress-labels span.active b{background:var(--blue);border-color:var(--blue);color:#fff}
+.progress-labels span:not(.active){color:#7b8794;font-weight:400}
+.progress-labels span:not(.active) b{background:transparent;border-color:#cbd5df;color:inherit}
+.progress i{width:25%;transition:width .3s ease}
+.form-step{scroll-margin-top:190px}
 .dashboard-view{max-width:none;width:100%;margin:0;padding:32px 28px}
 .dashboard-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:18px}
 .dashboard-stats article{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;box-shadow:0 2px 7px rgba(16,42,67,.035)}

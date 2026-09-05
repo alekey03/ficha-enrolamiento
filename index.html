@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-nationality" />
+  <link rel="stylesheet" href="styles.css?v=20260904-sticky-steps" />
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -66,12 +66,12 @@
 
     <div id="formView" class="view">
     <div class="progress-wrap">
-      <div class="progress-labels"><span><b>1</b> Datos personales</span><span><b>2</b> Características</span><span><b>3</b> Intervención</span><span><b>4</b> Fotografías</span></div>
+      <div class="progress-labels"><span class="active" data-step-target="stepPersonal" role="button" tabindex="0"><b>1</b> Datos personales</span><span data-step-target="stepFeatures" role="button" tabindex="0"><b>2</b> Características</span><span data-step-target="stepIntervention" role="button" tabindex="0"><b>3</b> Intervención</span><span data-step-target="stepPhotos" role="button" tabindex="0"><b>4</b> Fotografías</span></div>
       <div class="progress"><i></i></div>
     </div>
 
     <form id="enrolmentForm" novalidate>
-      <section class="card hero-card">
+      <section class="card hero-card form-step" id="stepPersonal" data-step="1">
         <div class="photo-upload">
           <input type="file" id="photo" accept="image/jpeg,image/png,image/webp" hidden />
           <label for="photo" id="photoLabel"><span class="camera">⌑</span><strong>Agregar fotografía</strong><small>Medio cuerpo, fondo blanco<br>JPG, PNG o WEBP · Compresión automática</small></label>
@@ -98,7 +98,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card form-step" id="stepFeatures" data-step="2">
         <div class="section-heading"><span class="number">02</span><div><h2>Características físicas y documento</h2><p>Registre únicamente datos observables y necesarios.</p></div></div>
         <div class="grid cols-4">
           <label>Estatura (m)<input name="estatura" type="number" min="0" max="3" step="0.01" placeholder="Ej. 1.65"></label>
@@ -111,7 +111,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card form-step" id="stepIntervention" data-step="3">
         <div class="section-heading"><span class="number">03</span><div><h2>Datos de la intervención</h2><p>Información del operativo y del responsable del registro.</p></div></div>
         <div class="grid cols-3">
           <label class="span-2">Motivo de intervención<textarea name="motivo" rows="2"></textarea></label>
@@ -124,7 +124,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card form-step" id="stepPhotos" data-step="4">
         <div class="section-heading"><span class="number">04</span><div><h2>Archivos fotográficos</h2><p>Adjunte fotografías de marcas visibles y documentos cuando corresponda.</p></div></div>
         <div class="upload-grid">
           <label class="file-box"><input id="marksFiles" type="file" multiple accept="image/jpeg,image/png,image/webp"><span>＋</span><strong>Tatuajes y cicatrices</strong><small>Agregar imágenes · Se comprimen automáticamente</small></label>
@@ -196,6 +196,6 @@
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20260904-nationality"></script>
+  <script src="app.js?v=20260904-sticky-steps"></script>
 </body>
 </html>

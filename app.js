@@ -756,6 +756,37 @@ document.querySelectorAll('[data-view]').forEach(button => {
 });
 
 document.getElementById('refreshDashboard').addEventListener('click', loadDashboard);
+
+const formSteps = [...document.querySelectorAll('.form-step')];
+const progressStepLabels = [...document.querySelectorAll('.progress-labels [data-step-target]')];
+const progressBar = document.querySelector('.progress i');
+
+function setActiveFormStep(stepNumber) {
+  progressStepLabels.forEach((label, index) => label.classList.toggle('active', index + 1 === stepNumber));
+  progressBar.style.width = `${stepNumber * 25}%`;
+}
+
+function updateFormStepFromScroll() {
+  if (!document.getElementById('formView').classList.contains('active')) return;
+  let activeStep = 1;
+  formSteps.forEach((section, index) => {
+    if (section.getBoundingClientRect().top <= 205) activeStep = index + 1;
+  });
+  setActiveFormStep(activeStep);
+}
+
+progressStepLabels.forEach(label => {
+  const goToStep = () => document.getElementById(label.dataset.stepTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  label.addEventListener('click', goToStep);
+  label.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      goToStep();
+    }
+  });
+});
+
+window.addEventListener('scroll', updateFormStepFromScroll, { passive: true });
 document.getElementById('recordSearchButton').addEventListener('click', loadRecords);
 document.getElementById('recordSearch').addEventListener('keydown', event => {
   if (event.key === 'Enter') loadRecords();
