@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-sticky-steps" />
+  <link rel="stylesheet" href="styles.css?v=20260904-mobile-camera" />
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -35,6 +35,7 @@
     </nav>
     <div class="security-note"><span>🔒</span><div><strong>Información protegida</strong><p>Acceso exclusivo para personal autorizado.</p></div></div>
   </aside>
+  <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Cerrar menú"></button>
 
   <main>
     <header class="topbar">
@@ -73,8 +74,8 @@
     <form id="enrolmentForm" novalidate>
       <section class="card hero-card form-step" id="stepPersonal" data-step="1">
         <div class="photo-upload">
-          <input type="file" id="photo" accept="image/jpeg,image/png,image/webp" hidden />
-          <label for="photo" id="photoLabel"><span class="camera">⌑</span><strong>Agregar fotografía</strong><small>Medio cuerpo, fondo blanco<br>JPG, PNG o WEBP · Compresión automática</small></label>
+          <input type="file" id="photo" accept="image/*" capture="user" hidden />
+          <label for="photo" id="photoLabel"><span class="camera">📷</span><strong>Tomar foto de la persona</strong><small>Use la cámara o elija una imagen<br>Compresión automática</small></label>
         </div>
         <div class="section-content">
           <div class="section-heading"><span class="number">01</span><div><h2>Datos personales</h2><p>Complete la información de identificación de la persona.</p></div><span class="required-note">* Campos obligatorios</span></div>
@@ -127,8 +128,8 @@
       <section class="card form-step" id="stepPhotos" data-step="4">
         <div class="section-heading"><span class="number">04</span><div><h2>Archivos fotográficos</h2><p>Adjunte fotografías de marcas visibles y documentos cuando corresponda.</p></div></div>
         <div class="upload-grid">
-          <label class="file-box"><input id="marksFiles" type="file" multiple accept="image/jpeg,image/png,image/webp"><span>＋</span><strong>Tatuajes y cicatrices</strong><small>Agregar imágenes · Se comprimen automáticamente</small></label>
-          <label class="file-box"><input id="documentsFiles" type="file" multiple accept="image/jpeg,image/png,image/webp"><span>＋</span><strong>Documentos de identidad</strong><small>Agregar anverso y reverso · Compresión automática</small></label>
+          <label class="file-box"><input id="marksFiles" type="file" multiple accept="image/*" capture="environment"><span>📷</span><strong>Fotografiar tatuajes y cicatrices</strong><small id="marksFileStatus">Abrir cámara o elegir imágenes</small></label>
+          <label class="file-box"><input id="documentsFiles" type="file" multiple accept="image/*" capture="environment"><span>📄</span><strong>Fotografiar documentos</strong><small id="documentsFileStatus">Anverso, reverso u otros documentos</small></label>
         </div>
       </section>
 
@@ -196,6 +197,6 @@
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20260904-sticky-steps"></script>
+  <script src="app.js?v=20260904-mobile-camera"></script>
 </body>
 </html>

@@ -787,6 +787,51 @@ progressStepLabels.forEach(label => {
 });
 
 window.addEventListener('scroll', updateFormStepFromScroll, { passive: true });
+
+const mobileMenuButton = document.querySelector('.menu');
+const mobileSidebar = document.querySelector('.sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+function closeMobileMenu() {
+  mobileSidebar.classList.remove('open');
+  sidebarBackdrop.classList.remove('visible');
+  document.body.classList.remove('menu-open');
+  mobileMenuButton.setAttribute('aria-expanded', 'false');
+}
+
+mobileMenuButton.setAttribute('aria-expanded', 'false');
+mobileMenuButton.addEventListener('click', () => {
+  const opening = !mobileSidebar.classList.contains('open');
+  mobileSidebar.classList.toggle('open', opening);
+  sidebarBackdrop.classList.toggle('visible', opening);
+  document.body.classList.toggle('menu-open', opening);
+  mobileMenuButton.setAttribute('aria-expanded', String(opening));
+});
+sidebarBackdrop.addEventListener('click', closeMobileMenu);
+document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', closeMobileMenu));
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeMobileMenu();
+});
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 900) closeMobileMenu();
+});
+
+function showSelectedFileCount(inputId, statusId, emptyText) {
+  const input = document.getElementById(inputId);
+  const fileStatus = document.getElementById(statusId);
+  input.addEventListener('change', () => {
+    const count = input.files?.length || 0;
+    fileStatus.textContent = count ? `${count} imagen${count === 1 ? '' : 'es'} lista${count === 1 ? '' : 's'} para guardar` : emptyText;
+  });
+}
+
+showSelectedFileCount('marksFiles', 'marksFileStatus', 'Abrir cámara o elegir imágenes');
+showSelectedFileCount('documentsFiles', 'documentsFileStatus', 'Anverso, reverso u otros documentos');
+form.addEventListener('reset', () => {
+  document.getElementById('marksFileStatus').textContent = 'Abrir cámara o elegir imágenes';
+  document.getElementById('documentsFileStatus').textContent = 'Anverso, reverso u otros documentos';
+  setActiveFormStep(1);
+});
 document.getElementById('recordSearchButton').addEventListener('click', loadRecords);
 document.getElementById('recordSearch').addEventListener('keydown', event => {
   if (event.key === 'Enter') loadRecords();
