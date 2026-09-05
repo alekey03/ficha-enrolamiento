@@ -11,6 +11,9 @@ let currentProfile = null;
 let selectedRecord = null;
 let editingRecordId = null;
 let editingRecordCode = null;
+let pendingMarkFiles = [];
+let pendingDocumentFiles = [];
+const capturePreviewUrls = { marksFiles: [], documentsFiles: [] };
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({
@@ -51,16 +54,16 @@ async function compressImage(file) {
 
 async function uploadRecordFiles(recordId) {
   const groups = [
-    { input: photo, type: 'foto_principal' },
-    { input: document.getElementById('marksFiles'), type: 'tatuaje' },
-    { input: document.getElementById('documentsFiles'), type: 'documento' }
+    { files: [...photo.files], type: 'foto_principal' },
+    { files: pendingMarkFiles, type: 'tatuaje' },
+    { files: pendingDocumentFiles, type: 'documento' }
   ];
   const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
   const uploadedMetadata = [];
   let failed = 0;
 
   for (const group of groups) {
-    for (const file of [...group.input.files]) {
+    for (const file of group.files) {
       if (!allowedTypes.has(file.type) || file.size > 25 * 1024 * 1024) {
         failed += 1;
         continue;
@@ -816,20 +819,43 @@ window.addEventListener('resize', () => {
   if (window.innerWidth > 900) closeMobileMenu();
 });
 
-function showSelectedFileCount(inputId, statusId, emptyText) {
+function renderCapturedFiles(inputId, files, previewId, statusId, emptyText) {
+  capturePreviewUrls[inputId].forEach(url => URL.revokeObjectURL(url));
+  capturePreviewUrls[inputId] = files.map(file => URL.createObjectURL(file));
+  const preview = document.getElementById(previewId);
+  preview.innerHTML = files.map((file, index) => `
+    <figure class="capture-thumb">
+      <img src="${capturePreviewUrls[inputId][index]}" alt="Vista previa ${index + 1}">
+      <button type="button" data-remove-index="${index}" aria-label="Quitar imagen ${index + 1}">×</button>
+    </figure>`).join('');
+  document.getElementById(statusId).textContent = files.length
+    ? `${files.length} imagen${files.length === 1 ? '' : 'es'} lista${files.length === 1 ? '' : 's'} para guardar`
+    : emptyText;
+  preview.querySelectorAll('[data-remove-index]').forEach(button => button.addEventListener('click', () => {
+    files.splice(Number(button.dataset.removeIndex), 1);
+    renderCapturedFiles(inputId, files, previewId, statusId, emptyText);
+  }));
+}
+
+function accumulateCapturedFiles(inputId, files, previewId, statusId, emptyText) {
   const input = document.getElementById(inputId);
-  const fileStatus = document.getElementById(statusId);
   input.addEventListener('change', () => {
-    const count = input.files?.length || 0;
-    fileStatus.textContent = count ? `${count} imagen${count === 1 ? '' : 'es'} lista${count === 1 ? '' : 's'} para guardar` : emptyText;
+    files.push(...[...(input.files || [])]);
+    input.value = '';
+    renderCapturedFiles(inputId, files, previewId, statusId, emptyText);
   });
 }
 
-showSelectedFileCount('marksFiles', 'marksFileStatus', 'Abrir cámara o elegir imágenes');
-showSelectedFileCount('documentsFiles', 'documentsFileStatus', 'Anverso, reverso u otros documentos');
+accumulateCapturedFiles('marksFiles', pendingMarkFiles, 'marksPreview', 'marksFileStatus', 'Abrir cámara o elegir imágenes');
+accumulateCapturedFiles('documentsFiles', pendingDocumentFiles, 'documentsPreview', 'documentsFileStatus', 'Anverso, reverso u otros documentos');
+document.querySelectorAll('.add-more-photo').forEach(button => button.addEventListener('click', () => {
+  document.getElementById(button.dataset.for)?.click();
+}));
 form.addEventListener('reset', () => {
-  document.getElementById('marksFileStatus').textContent = 'Abrir cámara o elegir imágenes';
-  document.getElementById('documentsFileStatus').textContent = 'Anverso, reverso u otros documentos';
+  pendingMarkFiles.length = 0;
+  pendingDocumentFiles.length = 0;
+  renderCapturedFiles('marksFiles', pendingMarkFiles, 'marksPreview', 'marksFileStatus', 'Abrir cámara o elegir imágenes');
+  renderCapturedFiles('documentsFiles', pendingDocumentFiles, 'documentsPreview', 'documentsFileStatus', 'Anverso, reverso u otros documentos');
   setActiveFormStep(1);
 });
 document.getElementById('recordSearchButton').addEventListener('click', loadRecords);

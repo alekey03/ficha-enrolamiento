@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-mobile-camera" />
+  <link rel="stylesheet" href="styles.css?v=20260904-mobile-gallery" />
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -128,8 +128,8 @@
       <section class="card form-step" id="stepPhotos" data-step="4">
         <div class="section-heading"><span class="number">04</span><div><h2>Archivos fotográficos</h2><p>Adjunte fotografías de marcas visibles y documentos cuando corresponda.</p></div></div>
         <div class="upload-grid">
-          <label class="file-box"><input id="marksFiles" type="file" multiple accept="image/*" capture="environment"><span>📷</span><strong>Fotografiar tatuajes y cicatrices</strong><small id="marksFileStatus">Abrir cámara o elegir imágenes</small></label>
-          <label class="file-box"><input id="documentsFiles" type="file" multiple accept="image/*" capture="environment"><span>📄</span><strong>Fotografiar documentos</strong><small id="documentsFileStatus">Anverso, reverso u otros documentos</small></label>
+          <div class="mobile-upload-group"><label class="file-box"><input id="marksFiles" type="file" multiple accept="image/*" capture="environment"><span>📷</span><strong>Fotografiar tatuajes y cicatrices</strong><small id="marksFileStatus">Abrir cámara o elegir imágenes</small></label><div class="capture-preview" id="marksPreview"></div><button class="secondary add-more-photo" data-for="marksFiles" type="button">＋ Agregar otra foto</button></div>
+          <div class="mobile-upload-group"><label class="file-box"><input id="documentsFiles" type="file" multiple accept="image/*" capture="environment"><span>📄</span><strong>Fotografiar documentos</strong><small id="documentsFileStatus">Anverso, reverso u otros documentos</small></label><div class="capture-preview" id="documentsPreview"></div><button class="secondary add-more-photo" data-for="documentsFiles" type="button">＋ Agregar otra foto</button></div>
         </div>
       </section>
 
@@ -197,6 +197,6 @@
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20260904-mobile-camera"></script>
+  <script src="app.js?v=20260904-mobile-gallery"></script>
 </body>
 </html>
