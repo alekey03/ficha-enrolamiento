@@ -158,3 +158,24 @@
   .chart-card{min-height:240px}.card{border-radius:10px}
   .user .avatar{width:34px;height:34px}
 }
+
+/* Módulo de detenidos */
+.nav-divider{margin:18px 12px 7px;color:rgba(255,255,255,.58);font-size:9px;font-weight:700;letter-spacing:.14em}
+.module-badge{align-self:center;padding:8px 12px;border-radius:99px;background:#e5f4ec;color:#17633f;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.detainee-view{max-width:none;width:100%}
+.detainee-form{display:grid;gap:18px;padding:0;margin-top:18px;max-width:none;width:100%}
+.detainee-section{margin:0;padding:24px}
+.detainee-section .section-heading{align-items:flex-start}
+.compact{margin-left:auto;padding:9px 12px;white-space:nowrap}
+.span-4{grid-column:1/-1}
+.crime-list{display:grid;gap:12px}
+.crime-row{border:1px solid var(--line);border-radius:9px;background:#f8fafb;padding:15px}
+.crime-row-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--navy);font-size:12px}
+.remove-crime{border:0;background:#f8dfdf;color:#8b1e1e;width:28px;height:28px;border-radius:50%;font-size:18px;cursor:pointer}
+.cols-5{grid-template-columns:.7fr 1.1fr 1.2fr 1.2fr 1fr}
+.detainee-save{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0;padding:18px 22px}
+.detainee-save p{margin:0;color:var(--muted);font-size:11px}.detainee-save>div{display:flex;gap:10px}
+.success-text{color:#17633f!important;font-weight:700}.error-text{color:#a12828!important;font-weight:700}
+.detainee-filters{grid-template-columns:2fr repeat(3,1fr) auto}
+@media(max-width:1100px){.cols-5{grid-template-columns:repeat(2,1fr)}.detainee-filters{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.nav-divider{margin-top:12px}.module-badge{display:none}.detainee-form{padding:0}.detainee-section{padding:18px 14px}.detainee-section .section-heading{flex-wrap:wrap}.compact{width:100%;margin:10px 0 0}.cols-5,.detainee-filters{grid-template-columns:1fr}.detainee-save{align-items:stretch;flex-direction:column}.detainee-save>div button{flex:1}}

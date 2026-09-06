@@ -619,7 +619,9 @@ async function loadDashboard() {
 const pageTitles = {
   dashboardView: ['RESUMEN', 'Dashboard de víctimas'],
   formView: ['NUEVO REGISTRO', 'Ficha voluntaria de identificación'],
-  recordsView: ['CONSULTA', 'Registros de enrolamiento']
+  recordsView: ['CONSULTA', 'Registros de enrolamiento'],
+  detaineeFormView: ['NUEVO REGISTRO', 'Registro de persona detenida'],
+  detaineeRecordsView: ['CONSULTA', 'Registros de detenidos']
   ,usersView: ['ADMINISTRACIÓN', 'Gestión de usuarios']
 };
 
@@ -824,6 +826,8 @@ document.querySelectorAll('[data-view]').forEach(button => {
     document.getElementById('pageHeading').textContent = pageTitles[target][1];
     if (target === 'dashboardView') loadDashboard();
     if (target === 'recordsView') loadRecords();
+    if (target === 'detaineeFormView') window.initializeDetaineeForm?.();
+    if (target === 'detaineeRecordsView') window.loadDetaineeRecords?.();
     if (target === 'usersView') loadUsers();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });

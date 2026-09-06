@@ -31,6 +31,9 @@
       <button class="nav-item active" data-view="dashboardView"><span>⌂</span>Dashboard</button>
       <button class="nav-item" data-view="formView"><span>＋</span>Nueva ficha</button>
       <button class="nav-item" data-view="recordsView"><span>▤</span>Registros</button>
+      <div class="nav-divider">DETENIDOS</div>
+      <button class="nav-item" data-view="detaineeFormView"><span>＋</span>Nuevo detenido</button>
+      <button class="nav-item" data-view="detaineeRecordsView"><span>▤</span>Registros detenidos</button>
       <button class="nav-item admin-only" data-view="usersView"><span>♙</span>Usuarios</button>
     </nav>
     <div class="security-note"><span>🔒</span><div><strong>Información protegida</strong><p>Acceso exclusivo para personal autorizado.</p></div></div>
@@ -169,6 +172,28 @@
       </div>
     </section>
 
+    <section id="detaineeFormView" class="view records-view detainee-view">
+      <div class="records-toolbar"><div><h2>Registro de persona detenida</h2><p>Información de identidad, detención, delitos y puesta a disposición.</p></div><span class="module-badge">Módulo Detenidos</span></div>
+      <form id="detaineeForm" class="detainee-form" novalidate>
+        <section class="card detainee-section"><div class="section-heading"><span class="number">01</span><div><h2>Identificación</h2><p>Datos personales y documento de identidad.</p></div><span class="required-note">* Campos obligatorios</span></div><div class="grid cols-4">
+          <label>Apellido paterno *<input name="apellidoPaterno" required></label><label>Apellido materno<input name="apellidoMaterno"></label><label class="span-2">Nombres *<input name="nombres" required></label>
+          <label>Edad<input name="edad" type="number" min="0" max="120"></label><label>Género<select name="genero"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option><option>Otro</option><option>No consignado</option></select></label><label>Nacionalidad<select name="nacionalidad"><option value="">Seleccionar</option><option>Perú</option><option>Venezuela</option><option>Colombia</option><option>Bolivia</option><option>Ecuador</option><option>Brasil</option><option>Chile</option><option>Argentina</option><option>Uruguay</option><option>España</option><option>Otra nacionalidad</option></select></label><label>Tipo de documento<select name="tipoDocumento"><option value="">Seleccionar</option><option>DNI</option><option>C.E.</option><option>Pasaporte</option><option>Cédula de identidad</option><option>Sin documento</option></select></label>
+          <label>Número de documento<input name="numeroDocumento"></label><label>Departamento<input name="departamento"></label><label>Provincia<input name="provincia"></label><label>Distrito<input name="distrito"></label>
+        </div></section>
+        <section class="card detainee-section"><div class="section-heading"><span class="number">02</span><div><h2>Datos de la detención</h2><p>Fecha, hora, motivo y condición del intervenido.</p></div></div><div class="grid cols-4"><label>Fecha *<input name="fecha" type="date" required></label><label>Hora<input name="hora" type="time"></label><label>Motivo<select name="motivoDetencion"><option value="">Seleccionar</option><option>Flagrancia</option><option>Detención preliminar</option><option>Orden judicial</option><option>Otro</option></select></label><label>Funcionario/servidor público<select name="esFuncionario"><option value="false">No</option><option value="true">Sí</option></select></label><label class="span-2">Entidad pública<input name="entidadPublica"></label><label class="span-2">Detalle de entidad<input name="detalleEntidad"></label></div></section>
+        <section class="card detainee-section"><div class="section-heading"><span class="number">03</span><div><h2>Delitos atribuidos</h2><p>Agregue uno o varios delitos sin duplicar columnas.</p></div><button class="secondary compact" id="addCrimeButton" type="button">＋ Agregar delito</button></div><div id="crimeList" class="crime-list"></div></section>
+        <section class="card detainee-section"><div class="section-heading"><span class="number">04</span><div><h2>Unidad interviniente y hallazgos</h2><p>Dependencia policial, organización y armas.</p></div></div><div class="grid cols-4"><label>Dirección DIRNIC/DIRNOS<input name="direccionPolicial"></label><label>Dirección/Región/Frente<input name="direccionRegion"></label><label>División policial<input name="divisionPolicial"></label><label>Departamento policial<input name="departamentoPolicial"></label><label class="span-2">Unidad/Área/Equipo<input name="unidadArea"></label><label>Integra organización<select name="integraOrganizacion"><option value="false">No</option><option value="true">Sí</option></select></label><label>Nombre de organización<input name="nombreOrganizacion"></label><label>Arma/hallazgo<select name="armaCategoria"><option value="">Ninguna</option><option>Arma de fuego</option><option>Arma blanca</option><option>Otro</option></select></label><label>Tipo de arma<input name="armaTipo"></label><label>Cantidad<input name="armaCantidad" type="number" min="1" value="1"></label><label>Observación<input name="armaObservacion"></label></div></section>
+        <section class="card detainee-section"><div class="section-heading"><span class="number">05</span><div><h2>Situación y puesta a disposición</h2><p>Estado actual, fiscalía, documentos y dependencia receptora.</p></div></div><div class="grid cols-4"><label class="span-2">Situación actual<input name="situacionActual"></label><label>Documento de libertad<input name="documentoLibertad"></label><label>Documento de disposición<input name="documentoDisposicion"></label><label>Nombre del fiscal<input name="fiscalNombre"></label><label>Fiscalía<input name="fiscalia"></label><label>Dirección receptora<input name="disposicionDireccion"></label><label>Región/Frente receptor<input name="disposicionRegion"></label><label>División receptora<input name="disposicionDivision"></label><label>Departamento receptor<input name="disposicionDepartamento"></label><label class="span-2">Unidad/Área/Equipo receptor<input name="disposicionUnidad"></label><label class="span-4">Nota informativa SICPIP<textarea name="notaSicpip" rows="3"></textarea></label></div></section>
+        <div class="card detainee-save"><p id="detaineeStatus">Los datos se guardarán bajo los permisos de su unidad.</p><div><button class="secondary" id="clearDetaineeButton" type="button">Limpiar</button><button class="primary" id="saveDetaineeButton" type="submit">Registrar detenido</button></div></div>
+      </form>
+    </section>
+
+    <section id="detaineeRecordsView" class="view records-view detainee-view">
+      <div class="records-toolbar"><div><h2>Registros de detenidos</h2><p>Consulta protegida por unidad, documento, fecha y situación.</p></div><button class="primary" data-view="detaineeFormView">＋ Nuevo detenido</button></div>
+      <div class="privacy-banner"><span>🔒</span><div><strong>Acceso restringido</strong><p>Solo se muestran registros autorizados para la cuenta activa.</p></div></div>
+      <div class="card records-card"><div class="records-filters detainee-filters"><label>Buscar<input id="detaineeSearch" type="search" placeholder="Código, nombre o documento"></label><label>Desde<input id="detaineeDateFrom" type="date"></label><label>Hasta<input id="detaineeDateTo" type="date"></label><label>Situación<input id="detaineeSituation" placeholder="Todas"></label><button class="secondary" id="searchDetaineesButton" type="button">Buscar</button></div><div id="detaineeRecordsResult"><div class="empty-state"><span>▤</span><h3>Abra esta sección para consultar detenidos</h3></div></div></div>
+    </section>
+
     <section id="usersView" class="view records-view">
       <div class="records-toolbar">
         <div><h2>Administración de usuarios</h2><p>Cree cuentas y controle el acceso del personal.</p></div>
@@ -219,6 +244,7 @@
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20260904-analytics"></script>
+  <script src="app.js?v=20260906-detenidos"></script>
+  <script src="detenidos.js?v=20260906-1"></script>
 </body>
 </html>
