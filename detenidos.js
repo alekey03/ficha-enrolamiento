@@ -126,8 +126,36 @@ window.loadDetaineeRecords = async function loadDetaineeRecords() {
   result.innerHTML = `<div class="records-count"><strong>${filtered.length} registro${filtered.length === 1 ? '' : 's'}</strong><span>Máximo 100 resultados</span></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Persona</th><th>Documento</th><th>Fecha</th><th>Delito</th><th>Situación</th><th>Unidad</th></tr></thead><tbody>${filtered.map(row => { const p=row.personas||{}; const crime=row.detencion_delitos?.[0]||{}; return `<tr><td><span class="record-code">${escapeHtml(row.codigo)}</span></td><td><span class="record-name">${escapeHtml(`${p.apellido_paterno||''} ${p.apellido_materno||''}, ${p.nombres||''}`)}</span></td><td>${escapeHtml(p.tipo_documento||'—')} ${escapeHtml(p.numero_documento||'')}</td><td>${escapeHtml(formatDate(row.fecha))}</td><td>${escapeHtml(crime.delito_especifico||crime.delito_general||'—')}</td><td>${escapeHtml(row.situacion_actual||'—')}</td><td>${escapeHtml(row.unidad)}</td></tr>`; }).join('')}</tbody></table></div>`;
 };
 
+window.loadDetaineeDashboard = async function loadDetaineeDashboard() {
+  const status = document.getElementById('detaineeDashboardStatus');
+  status.textContent = 'Consultando información…'; status.classList.add('visible');
+  let query = supabaseClient.from('detenciones').select('id,persona_id,fecha,motivo_detencion,situacion_actual,personas(nacionalidad,genero),detencion_delitos(delito_general)');
+  const from = document.getElementById('detaineeDashboardFrom').value;
+  const to = document.getElementById('detaineeDashboardTo').value;
+  if (from) query = query.gte('fecha', from);
+  if (to) query = query.lte('fecha', to);
+  const { data, error } = await query;
+  if (error) { status.textContent = 'No se pudo cargar el dashboard de detenidos.'; return; }
+  const records = data || [];
+  const now = new Date();
+  const currentMonth = records.filter(item => { const date = new Date(`${item.fecha}T00:00:00`); return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth(); }).length;
+  document.getElementById('detaineeDashboardTotal').textContent = records.length.toLocaleString('es-PE');
+  document.getElementById('detaineeDashboardPeople').textContent = new Set(records.map(item => item.persona_id)).size.toLocaleString('es-PE');
+  document.getElementById('detaineeDashboardFlagrancy').textContent = records.filter(item => /flagrancia/i.test(item.motivo_detencion || '')).length.toLocaleString('es-PE');
+  document.getElementById('detaineeDashboardMonth').textContent = currentMonth.toLocaleString('es-PE');
+  const count = selector => records.reduce((result, item) => { const values = selector(item); for (const value of (Array.isArray(values) ? values : [values])) { const key = dashboardCategory(value); result[key] = (result[key] || 0) + 1; } return result; }, {});
+  const renderCounts = (id, counts) => renderBarChart(id, counts);
+  renderCounts('detaineeNationalityChart', count(item => item.personas?.nacionalidad));
+  renderCounts('detaineeSituationChart', count(item => item.situacion_actual));
+  renderCounts('detaineeGenderChart', count(item => item.personas?.genero));
+  renderCounts('detaineeCrimeChart', count(item => item.detencion_delitos?.length ? item.detencion_delitos.map(crime => crime.delito_general) : [null]));
+  status.textContent = `${records.length.toLocaleString('es-PE')} detención${records.length === 1 ? '' : 'es'} en el periodo seleccionado.`;
+};
+
 document.getElementById('addCrimeButton').addEventListener('click', () => addCrimeRow());
 document.getElementById('clearDetaineeButton').addEventListener('click', () => { detaineeForm.reset(); crimeList.innerHTML=''; addCrimeRow(); document.getElementById('detaineeStatus').textContent='Formulario limpio.'; });
 document.getElementById('searchDetaineesButton').addEventListener('click', window.loadDetaineeRecords);
+document.getElementById('refreshDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);
+document.getElementById('applyDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);
 detaineeForm.addEventListener('submit', saveDetainee);
 window.initializeDetaineeForm();

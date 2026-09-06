@@ -620,6 +620,7 @@ const pageTitles = {
   dashboardView: ['RESUMEN', 'Dashboard de víctimas'],
   formView: ['NUEVO REGISTRO', 'Ficha voluntaria de identificación'],
   recordsView: ['CONSULTA', 'Registros de enrolamiento'],
+  detaineeDashboardView: ['RESUMEN', 'Dashboard de detenidos'],
   detaineeFormView: ['NUEVO REGISTRO', 'Registro de persona detenida'],
   detaineeRecordsView: ['CONSULTA', 'Registros de detenidos']
   ,usersView: ['ADMINISTRACIÓN', 'Gestión de usuarios']
@@ -758,7 +759,7 @@ async function loadUsers() {
     <td><span class="role ${profile.rol === 'administrador' ? 'admin' : ''}">${escapeHtml(profile.rol === 'administrador' ? 'admin' : profile.rol)}</span></td>
     <td>${escapeHtml(profile.unidad)}</td>
     <td><span class="state ${profile.activo ? '' : 'inactive'}">● ${profile.activo ? 'Activo' : 'Desactivado'}</span></td>
-    <td><button class="table-action edit-user" data-user-id="${escapeHtml(profile.id)}" type="button">Editar</button></td>
+    <td><div class="user-actions"><button class="table-action edit-user" data-user-id="${escapeHtml(profile.id)}" type="button">Editar</button><button class="table-action password-user" data-user-id="${escapeHtml(profile.id)}" type="button">Contraseña</button><button class="table-action toggle-user" data-user-id="${escapeHtml(profile.id)}" type="button">${profile.activo ? 'Desactivar' : 'Activar'}</button><button class="table-action delete-user" data-user-id="${escapeHtml(profile.id)}" type="button" ${profile.id === currentProfile.id ? 'disabled title="No puede eliminar su propia cuenta"' : ''}>Eliminar</button></div></td>
   </tr>`).join('');
   result.innerHTML = users.length
     ? `<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Rol</th><th>Unidad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${rows}</tbody></table></div>`
@@ -766,6 +767,35 @@ async function loadUsers() {
   result.querySelectorAll('.edit-user').forEach(button => button.addEventListener('click', () => {
     openUserForm(data.find(profile => profile.id === button.dataset.userId));
   }));
+  result.querySelectorAll('.password-user').forEach(button => button.addEventListener('click', () => {
+    openUserForm(data.find(profile => profile.id === button.dataset.userId));
+    document.getElementById('newUserPassword').focus();
+    document.getElementById('userFormMessage').textContent = 'Escriba la nueva contraseña (mínimo 8 caracteres) y pulse Guardar cambios.';
+  }));
+  result.querySelectorAll('.toggle-user').forEach(button => button.addEventListener('click', async () => {
+    const profile = data.find(item => item.id === button.dataset.userId);
+    if (!profile || (profile.id === currentProfile.id && profile.activo)) return alert('No puede desactivar su propia cuenta.');
+    if (!confirm(`¿Desea ${profile.activo ? 'desactivar' : 'activar'} el acceso de ${profile.nombres} ${profile.apellidos}?`)) return;
+    await runUserAction({ accion: 'actualizar', id: profile.id, usuario: profile.usuario, nombres: profile.nombres, apellidos: profile.apellidos, unidad: profile.unidad, rol: profile.rol, activo: !profile.activo, contrasena: '' });
+  }));
+  result.querySelectorAll('.delete-user').forEach(button => button.addEventListener('click', async () => {
+    const profile = data.find(item => item.id === button.dataset.userId);
+    if (!profile || profile.id === currentProfile.id) return;
+    if (!confirm(`¿Eliminar definitivamente el acceso de ${profile.nombres} ${profile.apellidos}?\n\nSi posee registros históricos, el sistema impedirá la eliminación y deberá desactivarlo.`)) return;
+    await runUserAction({ accion: 'eliminar', id: profile.id });
+  }));
+}
+
+async function runUserAction(payload) {
+  const { data, error } = await supabaseClient.functions.invoke('administrar-usuarios', { body: payload });
+  if (error || !data?.ok) {
+    let message = data?.error || 'No se pudo completar la operación.';
+    if (!data?.error && error?.context) { try { message = (await error.context.clone().json())?.error || message; } catch (_) {} }
+    alert(message);
+    return false;
+  }
+  await loadUsers();
+  return true;
 }
 
 document.getElementById('openUserModal').addEventListener('click', () => openUserForm());
@@ -820,18 +850,31 @@ userForm.addEventListener('submit', async event => {
 document.querySelectorAll('[data-view]').forEach(button => {
   button.addEventListener('click', () => {
     const target = button.dataset.view;
+    const parentGroup = button.closest('.nav-group');
+    if (parentGroup) {
+      parentGroup.classList.add('open');
+      parentGroup.querySelector('.nav-group-toggle')?.setAttribute('aria-expanded', 'true');
+    }
     document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === target));
     document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.view === target));
     document.getElementById('pageEyebrow').textContent = pageTitles[target][0];
     document.getElementById('pageHeading').textContent = pageTitles[target][1];
     if (target === 'dashboardView') loadDashboard();
     if (target === 'recordsView') loadRecords();
+    if (target === 'detaineeDashboardView') window.loadDetaineeDashboard?.();
     if (target === 'detaineeFormView') window.initializeDetaineeForm?.();
     if (target === 'detaineeRecordsView') window.loadDetaineeRecords?.();
     if (target === 'usersView') loadUsers();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
+
+document.querySelectorAll('.nav-group-toggle').forEach(toggle => toggle.addEventListener('click', () => {
+  const group = toggle.closest('.nav-group');
+  const opening = !group.classList.contains('open');
+  group.classList.toggle('open', opening);
+  toggle.setAttribute('aria-expanded', String(opening));
+}));
 
 document.getElementById('refreshDashboard').addEventListener('click', loadDashboard);
 document.getElementById('applyDashboardFilters').addEventListener('click', renderDashboard);

@@ -12,6 +12,28 @@ export default {
       if (!caller?.activo || caller.rol !== 'administrador') throw new Error('Solo un administrador puede gestionar usuarios.');
 
       const body = await req.json();
+      if (body.accion === 'eliminar') {
+        if (!body.id) throw new Error('Usuario no identificado.');
+        if (body.id === userId) throw new Error('No puede eliminar su propia cuenta.');
+        const { data: target, error: targetError } = await ctx.supabaseAdmin.from('perfiles').select('rol,nombres,apellidos').eq('id', body.id).single();
+        if (targetError) throw targetError;
+        if (target.rol === 'administrador') {
+          const { count, error: countError } = await ctx.supabaseAdmin.from('perfiles').select('id', { count: 'exact', head: true }).eq('rol', 'administrador').eq('activo', true);
+          if (countError) throw countError;
+          if ((count || 0) <= 1) throw new Error('Debe conservar al menos un administrador activo.');
+        }
+        const activityChecks = await Promise.all([
+          ctx.supabaseAdmin.from('fichas').select('id', { count: 'exact', head: true }).eq('creado_por', body.id),
+          ctx.supabaseAdmin.from('personas').select('id', { count: 'exact', head: true }).eq('creado_por', body.id),
+          ctx.supabaseAdmin.from('detenciones').select('id', { count: 'exact', head: true }).eq('creado_por', body.id)
+        ]);
+        if (activityChecks.some(result => result.error)) throw activityChecks.find(result => result.error)?.error;
+        if (activityChecks.some(result => (result.count || 0) > 0)) throw new Error('Este usuario tiene registros históricos. Por seguridad y auditoría, desactívelo en lugar de eliminarlo.');
+        const { error: deleteError } = await ctx.supabaseAdmin.auth.admin.deleteUser(body.id);
+        if (deleteError) throw deleteError;
+        await ctx.supabaseAdmin.from('perfiles').delete().eq('id', body.id);
+        return Response.json({ ok: true });
+      }
       const roles = ['administrador', 'supervisor', 'operador'];
       if (!roles.includes(body.rol)) throw new Error('Rol no válido.');
       if (!body.nombres?.trim() || !body.apellidos?.trim() || !body.unidad?.trim()) throw new Error('Complete los datos obligatorios.');

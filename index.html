@@ -28,12 +28,22 @@
   <aside class="sidebar">
     <div class="brand"><img class="institution-logo" src="assets/logo-diriptim.png" alt="Escudo DIRIPTIM PNP"><div><strong>Enrolamiento</strong><small>Registro institucional</small></div></div>
     <nav aria-label="Navegación principal">
-      <button class="nav-item active" data-view="dashboardView"><span>⌂</span>Dashboard</button>
-      <button class="nav-item" data-view="formView"><span>＋</span>Nueva ficha</button>
-      <button class="nav-item" data-view="recordsView"><span>▤</span>Registros</button>
-      <div class="nav-divider">DETENIDOS</div>
-      <button class="nav-item" data-view="detaineeFormView"><span>＋</span>Nuevo detenido</button>
-      <button class="nav-item" data-view="detaineeRecordsView"><span>▤</span>Registros detenidos</button>
+      <div class="nav-group open" data-nav-group="victims">
+        <button class="nav-group-toggle" type="button" aria-expanded="true"><span>♙</span><strong>Víctimas</strong><i>⌄</i></button>
+        <div class="nav-submenu">
+          <button class="nav-item active" data-view="dashboardView"><span>⌂</span>Dashboard</button>
+          <button class="nav-item" data-view="formView"><span>＋</span>Nueva ficha</button>
+          <button class="nav-item" data-view="recordsView"><span>▤</span>Registros</button>
+        </div>
+      </div>
+      <div class="nav-group" data-nav-group="detainees">
+        <button class="nav-group-toggle" type="button" aria-expanded="false"><span>⚖</span><strong>Detenidos</strong><i>⌄</i></button>
+        <div class="nav-submenu">
+          <button class="nav-item" data-view="detaineeDashboardView"><span>⌂</span>Dashboard</button>
+          <button class="nav-item" data-view="detaineeFormView"><span>＋</span>Nuevo detenido</button>
+          <button class="nav-item" data-view="detaineeRecordsView"><span>▤</span>Registros</button>
+        </div>
+      </div>
       <button class="nav-item admin-only" data-view="usersView"><span>♙</span>Usuarios</button>
     </nav>
     <div class="security-note"><span>🔒</span><div><strong>Información protegida</strong><p>Acceso exclusivo para personal autorizado.</p></div></div>
@@ -172,6 +182,15 @@
       </div>
     </section>
 
+    <section id="detaineeDashboardView" class="view dashboard-view detainee-dashboard">
+      <div class="records-toolbar"><div><h2>Resumen de personas detenidas</h2><p>Indicadores consolidados según los permisos de su unidad.</p></div><button class="secondary" id="refreshDetaineeDashboard">↻ Actualizar</button></div>
+      <div class="card dashboard-filters detainee-dashboard-filters"><label>Desde<input id="detaineeDashboardFrom" type="date"></label><label>Hasta<input id="detaineeDashboardTo" type="date"></label><button class="primary" id="applyDetaineeDashboard" type="button">Aplicar filtros</button></div>
+      <div class="privacy-banner"><span>🔒</span><div><strong>Información estadística protegida</strong><p>El tablero presenta cantidades generales y no expone identidades.</p></div></div>
+      <div class="dashboard-stats"><article><small>TOTAL DETENCIONES</small><strong id="detaineeDashboardTotal">—</strong><span>Registros en el periodo</span></article><article><small>PERSONAS ÚNICAS</small><strong id="detaineeDashboardPeople">—</strong><span>Sin duplicar reincidencias</span></article><article><small>FLAGRANCIA</small><strong id="detaineeDashboardFlagrancy">—</strong><span>Detenciones registradas</span></article><article><small>ESTE MES</small><strong id="detaineeDashboardMonth">—</strong><span>Según fecha de detención</span></article></div>
+      <div id="detaineeDashboardStatus" class="dashboard-status visible">Consultando información…</div>
+      <div class="dashboard-grid"><article class="card chart-card"><div class="chart-heading"><div><h3>Por nacionalidad</h3><p>Personas detenidas por país</p></div></div><div id="detaineeNationalityChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por situación actual</h3><p>Estado reportado del detenido</p></div></div><div id="detaineeSituationChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por delito general</h3><p>Principales clasificaciones registradas</p></div></div><div id="detaineeCrimeChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por género</h3><p>Distribución de personas registradas</p></div></div><div id="detaineeGenderChart" class="bar-chart"></div></article></div>
+    </section>
+
     <section id="detaineeFormView" class="view records-view detainee-view">
       <div class="records-toolbar"><div><h2>Registro de persona detenida</h2><p>Información de identidad, detención, delitos y puesta a disposición.</p></div><span class="module-badge">Módulo Detenidos</span></div>
       <form id="detaineeForm" class="detainee-form" novalidate>
@@ -244,7 +263,7 @@
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20260906-detenidos"></script>
-  <script src="detenidos.js?v=20260906-1"></script>
+  <script src="app.js?v=20260906-admin-nav"></script>
+  <script src="detenidos.js?v=20260906-dashboard"></script>
 </body>
 </html>

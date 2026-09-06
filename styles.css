@@ -160,7 +160,7 @@
 }
 
 /* Módulo de detenidos */
-.nav-divider{margin:18px 12px 7px;color:rgba(255,255,255,.58);font-size:9px;font-weight:700;letter-spacing:.14em}
+.nav-group{display:grid;gap:4px}.nav-group-toggle{width:100%;display:flex;align-items:center;border:0;background:transparent;color:#f1f7f3;padding:13px 14px;border-radius:8px;cursor:pointer;text-align:left}.nav-group-toggle:hover{background:rgba(255,255,255,.08)}.nav-group-toggle>span{width:27px;font-size:17px}.nav-group-toggle strong{font-size:12px}.nav-group-toggle i{margin-left:auto;font-style:normal;transition:transform .2s}.nav-group.open .nav-group-toggle i{transform:rotate(180deg)}.nav-submenu{display:none;padding-left:12px}.nav-group.open .nav-submenu{display:grid;gap:4px}.nav-submenu .nav-item{padding:10px 12px;font-size:12px}.nav-submenu .nav-item span{width:25px;font-size:15px}
 .module-badge{align-self:center;padding:8px 12px;border-radius:99px;background:#e5f4ec;color:#17633f;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
 .detainee-view{max-width:none;width:100%}
 .detainee-form{display:grid;gap:18px;padding:0;margin-top:18px;max-width:none;width:100%}
@@ -177,5 +177,6 @@
 .detainee-save p{margin:0;color:var(--muted);font-size:11px}.detainee-save>div{display:flex;gap:10px}
 .success-text{color:#17633f!important;font-weight:700}.error-text{color:#a12828!important;font-weight:700}
 .detainee-filters{grid-template-columns:2fr repeat(3,1fr) auto}
+.detainee-dashboard-filters{grid-template-columns:1fr 1fr auto;max-width:680px}.user-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.user-actions .table-action{padding:5px 7px}.user-actions .delete-user{color:#a12828}.user-actions button:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:1100px){.cols-5{grid-template-columns:repeat(2,1fr)}.detainee-filters{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){.nav-divider{margin-top:12px}.module-badge{display:none}.detainee-form{padding:0}.detainee-section{padding:18px 14px}.detainee-section .section-heading{flex-wrap:wrap}.compact{width:100%;margin:10px 0 0}.cols-5,.detainee-filters{grid-template-columns:1fr}.detainee-save{align-items:stretch;flex-direction:column}.detainee-save>div button{flex:1}}
+@media(max-width:700px){.module-badge{display:none}.detainee-form{padding:0}.detainee-section{padding:18px 14px}.detainee-section .section-heading{flex-wrap:wrap}.compact{width:100%;margin:10px 0 0}.cols-5,.detainee-filters,.detainee-dashboard-filters{grid-template-columns:1fr}.detainee-save{align-items:stretch;flex-direction:column}.detainee-save>div button{flex:1}}
