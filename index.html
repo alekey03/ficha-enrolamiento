@@ -162,7 +162,7 @@
     <section id="recordsView" class="view records-view">
       <div class="records-toolbar">
         <div><h2>Registros de enrolamiento</h2><p>Consulte las fichas registradas por el personal autorizado.</p></div>
-        <button class="primary" data-view="formView">＋ Nueva ficha</button>
+        <div class="toolbar-actions"><button class="secondary" id="exportVictimsExcel" type="button">⇩ Exportar Excel</button><button class="primary" data-view="formView">＋ Nueva ficha</button></div>
       </div>
       <div class="privacy-banner"><span>🔒</span><div><strong>Acceso restringido</strong><p>Los resultados mostrados corresponden únicamente a la unidad autorizada para su cuenta.</p></div></div>
       <div class="card records-card">
@@ -208,7 +208,7 @@
     </section>
 
     <section id="detaineeRecordsView" class="view records-view detainee-view">
-      <div class="records-toolbar"><div><h2>Registros de detenidos</h2><p>Consulta protegida por unidad, documento, fecha y situación.</p></div><button class="primary" data-view="detaineeFormView">＋ Nuevo detenido</button></div>
+      <div class="records-toolbar"><div><h2>Registros de detenidos</h2><p>Consulta protegida por unidad, documento, fecha y situación.</p></div><div class="toolbar-actions"><button class="secondary" id="exportDetaineesExcel" type="button">⇩ Exportar Excel</button><button class="primary" data-view="detaineeFormView">＋ Nuevo detenido</button></div></div>
       <div class="privacy-banner"><span>🔒</span><div><strong>Acceso restringido</strong><p>Solo se muestran registros autorizados para la cuenta activa.</p></div></div>
       <div class="card records-card"><div class="records-filters detainee-filters"><label>Buscar<input id="detaineeSearch" type="search" placeholder="Código, nombre o documento"></label><label>Desde<input id="detaineeDateFrom" type="date"></label><label>Hasta<input id="detaineeDateTo" type="date"></label><label>Situación<input id="detaineeSituation" placeholder="Todas"></label><button class="secondary" id="searchDetaineesButton" type="button">Buscar</button></div><div id="detaineeRecordsResult"><div class="empty-state"><span>▤</span><h3>Abra esta sección para consultar detenidos</h3></div></div></div>
     </section>
@@ -263,7 +263,9 @@
   <article id="printSheet" class="print-sheet" aria-hidden="true"></article>
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="app.js?v=20260906-admin-nav"></script>
   <script src="detenidos.js?v=20260906-dashboard"></script>
+  <script src="exportaciones.js?v=20260908-1"></script>
 </body>
 </html>
