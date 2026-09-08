@@ -6,6 +6,16 @@ function excelSafe(value) {
   return /^[=+\-@]/.test(text) ? `'${text}` : text;
 }
 
+function formatRegistrationDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('es-PE', {
+    timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  }).format(date).replace(',', '');
+}
+
 async function fetchAllRows(table, select, configure = query => query) {
   const pageSize = 1000;
   const rows = [];
@@ -74,7 +84,7 @@ async function exportVictimsExcel() {
       'Nacionalidad': r.nacionalidad, 'Ocupación': r.ocupacion, 'Grado de instrucción': r.grado_instruccion, 'Teléfono': r.telefono, 'Domicilio': r.domicilio, 'Correo electrónico': r.correo, 'Redes sociales': r.redes_sociales,
       'Estatura': r.estatura, 'Cabello': r.cabello, 'Color de cabello': r.color_cabello, 'Características físicas': r.caracteristicas_fisicas, 'Cicatrices o tatuajes': r.cicatrices_tatuajes,
       'Tipo de documento': r.tipo_documento, 'Número de documento': r.numero_documento, 'Motivo de intervención': r.motivo_intervencion, 'Fecha de intervención': r.fecha_intervencion, 'Lugar de intervención': r.lugar_intervencion,
-      'Unidad': r.unidad, 'Grado del responsable': r.responsable_grado, 'Apellidos del responsable': r.responsable_apellidos, 'Nombres del responsable': r.responsable_nombres, 'Fecha de creación': r.creado_en, 'Última actualización': r.actualizado_en
+      'Unidad': r.unidad, 'Grado del responsable': r.responsable_grado, 'Apellidos del responsable': r.responsable_apellidos, 'Nombres del responsable': r.responsable_nombres, 'Fecha de registro': formatRegistrationDate(r.creado_en), 'Última actualización': formatRegistrationDate(r.actualizado_en)
     }));
     downloadWorkbook(rows, 'Victimas', `victimas_${currentProfile?.unidad || 'unidad'}`);
   });
@@ -107,7 +117,7 @@ async function exportDetaineesExcel() {
         'Integra BBCC/OOCC': r.integra_organizacion, 'Nombre BBCC/OOCC': r.nombre_organizacion, 'Armas': weapon.categoria || 'Ninguna', 'Tipo de arma': weapon.tipo, 'Cantidad de armas': weapon.cantidad, 'Observación de armas': weapon.observacion,
         'Situación actual del detenido': r.situacion_actual, 'Documento de libertad': r.documento_libertad, 'Documento de puesta a disposición': r.documento_disposicion, 'Nombre fiscal': r.fiscal_nombre, 'Fiscalía': r.fiscalia,
         'Puesta a disposición Dirección': r.disposicion_direccion, 'Puesta a disposición Región/Frente': r.disposicion_region, 'Puesta a disposición División': r.disposicion_division, 'Puesta a disposición Departamento': r.disposicion_departamento, 'Puesta a disposición Unidad/Área/Equipo': r.disposicion_unidad,
-        'Nota informativa SICPIP': r.nota_sicpip, 'Unidad responsable': r.unidad, 'Fecha de creación': r.creado_en, 'Última actualización': r.actualizado_en
+        'Nota informativa SICPIP': r.nota_sicpip, 'Unidad responsable': r.unidad, 'Fecha de registro': formatRegistrationDate(r.creado_en), 'Última actualización': formatRegistrationDate(r.actualizado_en)
       };
     });
     downloadWorkbook(rows, 'Detenidos', `detenidos_${currentProfile?.unidad || 'unidad'}`);
