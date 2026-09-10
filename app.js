@@ -249,7 +249,7 @@ async function openRecord(recordId) {
   document.getElementById('deleteRecordButton').classList.toggle('hidden-control', currentProfile?.rol !== 'administrador');
   document.getElementById('editRecordButton').classList.toggle(
     'hidden-control',
-    currentProfile?.rol !== 'administrador' && record.creado_por !== currentProfile?.id
+    currentProfile?.rol !== 'administrador'
   );
 
   document.getElementById('recordModalCode').textContent = record.codigo;
@@ -646,8 +646,9 @@ const pageTitles = {
   recordsView: ['CONSULTA', 'Registros de enrolamiento'],
   detaineeDashboardView: ['RESUMEN', 'Dashboard de detenidos'],
   detaineeFormView: ['NUEVO REGISTRO', 'Registro de persona detenida'],
-  detaineeRecordsView: ['CONSULTA', 'Registros de detenidos']
-  ,usersView: ['ADMINISTRACIÓN', 'Gestión de usuarios']
+  detaineeRecordsView: ['CONSULTA', 'Registros de detenidos'],
+  usersView: ['ADMINISTRACIÓN', 'Gestión de usuarios'],
+  auditView: ['SEGURIDAD', 'Auditoría del sistema']
 };
 
 function resetMainView() {
@@ -891,6 +892,7 @@ document.querySelectorAll('[data-view]').forEach(button => {
     if (target === 'detaineeFormView') window.initializeDetaineeForm?.();
     if (target === 'detaineeRecordsView') window.loadDetaineeRecords?.();
     if (target === 'usersView') loadUsers();
+    if (target === 'auditView') window.loadAudit?.();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });

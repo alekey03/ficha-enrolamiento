@@ -202,7 +202,7 @@
   body.sidebar-collapsed .sidebar>.security-note{justify-content:center;padding-left:0;padding-right:0}
   body.sidebar-collapsed .security-note>div{display:none}
   body.sidebar-collapsed .nav-item{font-size:0;text-align:center;padding-left:0;padding-right:0}
-  body.sidebar-collapsed .nav-item span{width:auto;font-size:17px}
+body.sidebar-collapsed .nav-item span{width:auto;font-size:17px}
 }
 @media(max-width:900px){.sidebar-collapse{display:none}.sidebar>.brand{padding-top:0}}
 .detainee-save{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0;padding:18px 22px}
@@ -213,3 +213,14 @@
 @media(max-width:1100px){.cols-5{grid-template-columns:repeat(2,1fr)}.detainee-filters{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.detainee-progress-wrap{top:76px;margin:-20px -12px 18px;padding:12px 14px}.detainee-form-step{scroll-margin-top:145px}}
 @media(max-width:700px){.module-badge{display:none}.detainee-form{padding:0}.detainee-section{padding:18px 14px}.detainee-section .section-heading{flex-wrap:wrap}.compact{width:100%;margin:10px 0 0}.cols-5,.detainee-filters,.detainee-dashboard-filters{grid-template-columns:1fr}.detainee-save{align-items:stretch;flex-direction:column}.detainee-save>div button{flex:1}}
+
+/* Auditoría administrativa */
+.audit-filters{grid-template-columns:2fr repeat(4,1fr) auto}
+.audit-card{padding:24px}.audit-table-wrap{margin-top:12px}
+.audit-table-wrap td{vertical-align:top}.audit-table-wrap td:nth-child(1){white-space:nowrap}
+.audit-action{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:700}
+.audit-action.insert{background:#e6f5ec;color:#17633f}.audit-action.update{background:#fff3d6;color:#8a5a00}.audit-action.delete{background:#fdeaea;color:#a12828}
+.audit-table-wrap details{max-width:430px}.audit-table-wrap summary{cursor:pointer;color:var(--blue);font-weight:600}
+.audit-table-wrap pre{max-height:260px;overflow:auto;margin:9px 0 0;padding:12px;border:1px solid var(--line);border-radius:7px;background:#f7f9fb;font:10px/1.45 Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+@media(max-width:1200px){.audit-filters{grid-template-columns:repeat(3,1fr)}.audit-filters label:first-child{grid-column:span 2}}
+@media(max-width:700px){.audit-filters{grid-template-columns:1fr}.audit-filters label:first-child{grid-column:auto}.audit-card{padding:16px}}

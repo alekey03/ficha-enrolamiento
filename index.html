@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260910-detainee-progress" />
+  <link rel="stylesheet" href="styles.css?v=20260910-admin-audit" />
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -46,6 +46,7 @@
         </div>
       </div>
       <button class="nav-item admin-only" data-view="usersView"><span>♙</span>Usuarios</button>
+      <button class="nav-item admin-only" data-view="auditView"><span>☷</span>Auditoría</button>
     </nav>
     <div class="security-note"><span>🔒</span><div><strong>Información protegida</strong><p>Acceso exclusivo para personal autorizado.</p></div></div>
   </aside>
@@ -241,6 +242,23 @@
         <div id="usersResult"><div class="empty-state"><span>♙</span><h3>Cargando usuarios…</h3></div></div>
       </div>
     </section>
+
+    <section id="auditView" class="view records-view audit-view">
+      <div class="records-toolbar"><div><h2>Auditoría del sistema</h2><p>Historial automático e inalterable de las operaciones realizadas.</p></div><button class="secondary" id="refreshAudit" type="button">↻ Actualizar</button></div>
+      <div class="privacy-banner"><span>🔒</span><div><strong>Acceso exclusivo para administradores</strong><p>Los eventos son generados directamente por PostgreSQL y no pueden editarse desde la aplicación.</p></div></div>
+      <div class="card audit-card">
+        <div class="records-filters audit-filters">
+          <label>Buscar<input id="auditSearch" type="search" placeholder="Usuario, código o registro"></label>
+          <label>Desde<input id="auditDateFrom" type="date"></label>
+          <label>Hasta<input id="auditDateTo" type="date"></label>
+          <label>Acción<select id="auditAction"><option value="">Todas</option><option value="INSERT">Creación</option><option value="UPDATE">Modificación</option><option value="DELETE">Eliminación</option></select></label>
+          <label>Módulo<select id="auditTable"><option value="">Todos</option><option value="fichas">Víctimas</option><option value="personas">Personas detenidas</option><option value="detenciones">Detenciones</option><option value="detencion_delitos">Delitos</option><option value="detencion_armas">Armas</option><option value="archivos">Archivos de víctimas</option><option value="detencion_archivos">Archivos de detenidos</option><option value="operativos">Operativos</option><option value="perfiles">Usuarios</option></select></label>
+          <button class="secondary" id="applyAuditFilters" type="button">Buscar</button>
+        </div>
+        <p class="records-status" id="auditStatus"></p>
+        <div id="auditResult"><div class="empty-state"><span>☷</span><h3>Abra esta sección para consultar la auditoría</h3></div></div>
+      </div>
+    </section>
   </main>
   <dialog id="userModal">
     <form class="modal-card" id="userForm">
@@ -279,7 +297,8 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="catalogos.js?v=20260910-secure-catalogs"></script>
   <script src="catalogos-ui.js?v=20260910-dependent-weapons"></script>
-  <script src="app.js?v=20260910-dependent-weapons"></script>
+  <script src="app.js?v=20260910-admin-audit"></script>
+  <script src="auditoria.js?v=20260910-admin-audit"></script>
   <script src="detenidos.js?v=20260910-secure-catalogs"></script>
   <script src="exportaciones.js?v=20260908-2"></script>
 </body>
