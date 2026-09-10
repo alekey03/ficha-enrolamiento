@@ -283,6 +283,13 @@
       <div class="modal-actions"><button class="danger hidden-control" id="deleteRecordButton">Eliminar</button><button class="secondary" id="closeRecordButton">Cerrar</button><button class="secondary" id="editRecordButton">Editar ficha</button><button class="primary" id="printRecordButton">Exportar PDF</button></div>
     </div>
   </dialog>
+  <dialog id="detaineeRecordModal" class="record-dialog">
+    <div class="record-modal-card">
+      <div class="modal-heading"><div><h2>Detalle del detenido</h2><p id="detaineeRecordModalCode">Consultando registro…</p></div><button id="closeDetaineeRecordModal" aria-label="Cerrar">×</button></div>
+      <div id="detaineeRecordDetail" class="record-detail"></div>
+      <div class="modal-actions"><button class="danger hidden-control" id="deleteDetaineeButton">Eliminar</button><button class="secondary" id="closeDetaineeButton">Cerrar</button><button class="secondary hidden-control" id="editDetaineeButton">Editar registro</button></div>
+    </div>
+  </dialog>
   <dialog id="duplicateModal" class="duplicate-dialog">
     <div class="modal-card">
       <div class="modal-heading"><div><h2>Posible registro existente</h2><p>Revise las coincidencias antes de continuar.</p></div></div>
@@ -296,10 +303,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="catalogos.js?v=20260910-secure-catalogs"></script>
-  <script src="catalogos-ui.js?v=20260910-dependent-weapons"></script>
+  <script src="catalogos-ui.js?v=20260910-detainee-edit"></script>
   <script src="app.js?v=20260910-audit-comparison"></script>
   <script src="auditoria.js?v=20260910-audit-comparison"></script>
-  <script src="detenidos.js?v=20260910-secure-catalogs"></script>
+  <script src="detenidos.js?v=20260910-detainee-edit"></script>
   <script src="exportaciones.js?v=20260908-2"></script>
 </body>
 </html>

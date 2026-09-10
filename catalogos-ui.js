@@ -149,6 +149,15 @@
     weaponDependency?.reset();
     updateOrganizationFields();
   };
+  window.setDetaineeDependencies = function setDetaineeDependencies(values = {}) {
+    detaineeLocation?.set([values.departamento, values.provincia, values.distrito]);
+    policeDependency?.set([values.direccion_policial, values.direccion_especializada_region, values.division_policial, values.departamento_policial]);
+    weaponDependency?.set([values.arma_categoria, values.arma_tipo]);
+    if (organizationToggle) organizationToggle.value = String(Boolean(values.integra_organizacion));
+    updateOrganizationFields();
+    if (organizationRole) organizationRole.value = values.rol_organizacion || '';
+    if (organizationName) organizationName.value = values.nombre_organizacion || '';
+  };
   window.setVictimLocation = function setVictimLocation(storedValue) {
     const wanted = String(storedValue || '').split('/').map(value => value.trim());
     victimLocationLegacy = '';

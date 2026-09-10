@@ -1,5 +1,9 @@
 const detaineeForm = document.getElementById('detaineeForm');
 const crimeList = document.getElementById('crimeList');
+const detaineeRecordModal = document.getElementById('detaineeRecordModal');
+let selectedDetainee = null;
+let editingDetaineeId = null;
+let editingDetaineeReason = '';
 
 function detaineeValue(name) {
   const value = new FormData(detaineeForm).get(name);
@@ -8,6 +12,23 @@ function detaineeValue(name) {
 
 function nullable(value) {
   return value === '' ? null : value;
+}
+
+function isDetaineeAdmin() { return currentProfile?.rol === 'administrador'; }
+function setDetaineeField(name, value) {
+  const field = detaineeForm.elements.namedItem(name);
+  if (field) field.value = value ?? '';
+}
+function detailField(label, value) {
+  return `<div class="detail-field"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value === null || value === undefined || value === '' ? '—' : String(value))}</strong></div>`;
+}
+function samePayload(current, next) {
+  return Object.keys(next).every(key => String(current?.[key] ?? '') === String(next[key] ?? ''));
+}
+async function assignAuditReason(table, id, reason) {
+  if (!reason || !id) return;
+  const { error } = await supabaseClient.rpc('asignar_motivo_auditoria', { p_tabla: table, p_registro_id: String(id), p_motivo: reason });
+  if (error) console.warn('No se pudo asociar el motivo de auditoría:', error);
 }
 
 function moduleUnavailable(error) {
@@ -78,7 +99,7 @@ async function saveDetainee(event) {
   let personResult;
   let detentionId;
   try {
-    personResult = await findOrCreatePerson();
+    personResult = editingDetaineeId ? { id: selectedDetainee.persona_id, created: false } : await findOrCreatePerson();
     const belongsToOrganization = detaineeValue('integraOrganizacion') === 'true';
     const organizationRole = belongsToOrganization ? detaineeValue('rolOrganizacion') : '';
     const organizationName = belongsToOrganization ? detaineeValue('nombreOrganizacion') : '';
@@ -90,6 +111,50 @@ async function saveDetainee(event) {
       fiscal_nombre: nullable(detaineeValue('fiscalNombre')), fiscalia: nullable(detaineeValue('fiscalia')), disposicion_direccion: nullable(detaineeValue('disposicionDireccion')), disposicion_region: nullable(detaineeValue('disposicionRegion')), disposicion_division: nullable(detaineeValue('disposicionDivision')), disposicion_departamento: nullable(detaineeValue('disposicionDepartamento')), disposicion_unidad: nullable(detaineeValue('disposicionUnidad')), nota_sicpip: nullable(detaineeValue('notaSicpip')),
       unidad: currentProfile.unidad, creado_por: currentProfile.id
     };
+    if (editingDetaineeId) {
+      const person = {
+        apellido_paterno: detaineeValue('apellidoPaterno'), apellido_materno: nullable(detaineeValue('apellidoMaterno')), nombres: detaineeValue('nombres'),
+        edad: nullable(detaineeValue('edad')) ? Number(detaineeValue('edad')) : null, genero: nullable(detaineeValue('genero')), nacionalidad: nullable(detaineeValue('nacionalidad')),
+        tipo_documento: nullable(detaineeValue('tipoDocumento')), numero_documento: nullable(detaineeValue('numeroDocumento')), departamento: nullable(detaineeValue('departamento')), provincia: nullable(detaineeValue('provincia')), distrito: nullable(detaineeValue('distrito'))
+      };
+      delete detention.persona_id; delete detention.unidad; delete detention.creado_por;
+      if (!samePayload(selectedDetainee.personas, person)) {
+        const { error: personError } = await supabaseClient.from('personas').update(person).eq('id', personResult.id);
+        if (personError) throw personError;
+        await assignAuditReason('personas', personResult.id, editingDetaineeReason);
+      }
+      if (!samePayload(selectedDetainee, detention)) {
+        const { error: detentionError } = await supabaseClient.from('detenciones').update(detention).eq('id', editingDetaineeId);
+        if (detentionError) throw detentionError;
+        await assignAuditReason('detenciones', editingDetaineeId, editingDetaineeReason);
+      }
+
+      const nextCrimes = readCrimes();
+      const previousCrimes = selectedDetainee.detencion_delitos || [];
+      for (let index = 0; index < nextCrimes.length; index += 1) {
+        const previous = previousCrimes[index]; const next = nextCrimes[index];
+        if (previous) {
+          if (!samePayload(previous, next)) {
+            const { error } = await supabaseClient.from('detencion_delitos').update(next).eq('id', previous.id); if (error) throw error;
+            await assignAuditReason('detencion_delitos', previous.id, editingDetaineeReason);
+          }
+        } else { const { error } = await supabaseClient.from('detencion_delitos').insert({ ...next, detencion_id: editingDetaineeId }); if (error) throw error; }
+      }
+      for (const previous of previousCrimes.slice(nextCrimes.length)) {
+        const { error } = await supabaseClient.from('detencion_delitos').delete().eq('id', previous.id); if (error) throw error;
+        await assignAuditReason('detencion_delitos', previous.id, editingDetaineeReason);
+      }
+      const nextWeapon = detaineeValue('armaCategoria') ? { categoria: detaineeValue('armaCategoria'), tipo: nullable(detaineeValue('armaTipo')), cantidad: Number(detaineeValue('armaCantidad') || 1), observacion: nullable(detaineeValue('armaObservacion')) } : null;
+      const previousWeapon = selectedDetainee.detencion_armas?.[0];
+      if (nextWeapon && previousWeapon && !samePayload(previousWeapon, nextWeapon)) { const { error } = await supabaseClient.from('detencion_armas').update(nextWeapon).eq('id', previousWeapon.id); if (error) throw error; await assignAuditReason('detencion_armas', previousWeapon.id, editingDetaineeReason); }
+      else if (nextWeapon && !previousWeapon) { const { error } = await supabaseClient.from('detencion_armas').insert({ ...nextWeapon, detencion_id: editingDetaineeId }); if (error) throw error; }
+      else if (!nextWeapon && previousWeapon) { const { error } = await supabaseClient.from('detencion_armas').delete().eq('id', previousWeapon.id); if (error) throw error; await assignAuditReason('detencion_armas', previousWeapon.id, editingDetaineeReason); }
+      status.className = 'success-text'; status.textContent = `✓ Detenido ${selectedDetainee.codigo} actualizado correctamente.`;
+      editingDetaineeId = null; editingDetaineeReason = ''; selectedDetainee = null;
+      detaineeForm.reset(); window.resetDetaineeDependencies?.(); crimeList.innerHTML = ''; addCrimeRow();
+      button.textContent = 'Registrar detenido';
+      return;
+    }
     const { data, error } = await supabaseClient.from('detenciones').insert(detention).select('id,codigo').single();
     if (error) throw error;
     detentionId = data.id;
@@ -123,8 +188,48 @@ window.loadDetaineeRecords = async function loadDetaineeRecords() {
   const situation = document.getElementById('detaineeSituation').value.trim().toLocaleLowerCase('es');
   const filtered = data.filter(row => { const p = row.personas || {}; const haystack = [row.codigo,p.apellido_paterno,p.apellido_materno,p.nombres,p.numero_documento].join(' ').toLocaleLowerCase('es'); return (!search || haystack.includes(search)) && (!situation || String(row.situacion_actual || '').toLocaleLowerCase('es').includes(situation)); });
   if (!filtered.length) { result.innerHTML = '<div class="empty-state"><span>⌕</span><h3>No se encontraron detenidos</h3><p>Pruebe con otros filtros.</p></div>'; return; }
-  result.innerHTML = `<div class="records-count"><strong>${filtered.length} registro${filtered.length === 1 ? '' : 's'}</strong><span>Máximo 100 resultados</span></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Persona</th><th>Documento</th><th>Fecha</th><th>Delito</th><th>Situación</th><th>Unidad</th></tr></thead><tbody>${filtered.map(row => { const p=row.personas||{}; const crime=row.detencion_delitos?.[0]||{}; return `<tr><td><span class="record-code">${escapeHtml(row.codigo)}</span></td><td><span class="record-name">${escapeHtml(`${p.apellido_paterno||''} ${p.apellido_materno||''}, ${p.nombres||''}`)}</span></td><td>${escapeHtml(p.tipo_documento||'—')} ${escapeHtml(p.numero_documento||'')}</td><td>${escapeHtml(formatDate(row.fecha))}</td><td>${escapeHtml(crime.delito_especifico||crime.delito_general||'—')}</td><td>${escapeHtml(row.situacion_actual||'—')}</td><td>${escapeHtml(row.unidad)}</td></tr>`; }).join('')}</tbody></table></div>`;
+  result.innerHTML = `<div class="records-count"><strong>${filtered.length} registro${filtered.length === 1 ? '' : 's'}</strong><span>Máximo 100 resultados</span></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Persona</th><th>Documento</th><th>Fecha</th><th>Delito</th><th>Situación</th><th>Unidad</th></tr></thead><tbody>${filtered.map(row => { const p=row.personas||{}; const crime=row.detencion_delitos?.[0]||{}; return `<tr class="detainee-record-row" data-detainee-id="${escapeHtml(row.id)}" tabindex="0"><td><span class="record-code">${escapeHtml(row.codigo)}</span></td><td><span class="record-name">${escapeHtml(`${p.apellido_paterno||''} ${p.apellido_materno||''}, ${p.nombres||''}`)}</span></td><td>${escapeHtml(p.tipo_documento||'—')} ${escapeHtml(p.numero_documento||'')}</td><td>${escapeHtml(formatDate(row.fecha))}</td><td>${escapeHtml(crime.delito_especifico||crime.delito_general||'—')}</td><td>${escapeHtml(row.situacion_actual||'—')}</td><td>${escapeHtml(row.unidad)}</td></tr>`; }).join('')}</tbody></table></div>`;
+  result.querySelectorAll('[data-detainee-id]').forEach(row => { const open = () => openDetaineeRecord(row.dataset.detaineeId); row.addEventListener('click', open); row.addEventListener('keydown', event => { if (event.key === 'Enter') open(); }); });
 };
+
+async function openDetaineeRecord(id) {
+  document.getElementById('detaineeRecordDetail').innerHTML = '<div class="empty-state"><h3>Cargando detalle…</h3></div>';
+  detaineeRecordModal.showModal();
+  const { data, error } = await supabaseClient.from('detenciones').select('*,personas(*),detencion_delitos(*),detencion_armas(*)').eq('id', id).single();
+  if (error) { document.getElementById('detaineeRecordDetail').innerHTML = '<p class="records-error">No se pudo cargar el registro.</p>'; return; }
+  selectedDetainee = data; const p = data.personas || {};
+  document.getElementById('detaineeRecordModalCode').textContent = data.codigo || 'Registro de detenido';
+  const crimes = (data.detencion_delitos || []).sort((a,b) => a.orden-b.orden).map((crime,index) => detailField(`Delito ${index+1}`, [crime.es_tentativa?'Tentativa':null,crime.fuero_ley_especial,crime.delito_general,crime.delito_especifico,crime.subtipo].filter(Boolean).join(' · '))).join('');
+  const weapons = (data.detencion_armas || []).map(weapon => detailField('Arma o hallazgo', [weapon.categoria,weapon.tipo,`Cantidad: ${weapon.cantidad||1}`,weapon.observacion].filter(Boolean).join(' · '))).join('');
+  document.getElementById('detaineeRecordDetail').innerHTML = `<div class="detail-section">Identificación</div>${detailField('Apellidos y nombres',`${p.apellido_paterno||''} ${p.apellido_materno||''}, ${p.nombres||''}`)}${detailField('Documento',[p.tipo_documento,p.numero_documento].filter(Boolean).join(' '))}${detailField('Edad / género',[p.edad,p.genero].filter(Boolean).join(' · '))}${detailField('Nacionalidad',p.nacionalidad)}${detailField('Ubicación',[p.departamento,p.provincia,p.distrito].filter(Boolean).join(' / '))}<div class="detail-section">Detención</div>${detailField('Fecha y hora',[formatDate(data.fecha),data.hora].filter(Boolean).join(' · '))}${detailField('Motivo',data.motivo_detencion)}${detailField('Situación actual',data.situacion_actual)}${detailField('Funcionario público',data.es_funcionario_publico?'Sí':'No')}${detailField('Entidad pública',[data.entidad_publica,data.detalle_entidad_publica].filter(Boolean).join(' · '))}<div class="detail-section">Delitos atribuidos</div>${crimes||detailField('Delitos','No registrados')}<div class="detail-section">Unidad, organización y hallazgos</div>${detailField('Dependencia',[data.direccion_policial,data.direccion_especializada_region,data.division_policial,data.departamento_policial,data.unidad_area_equipo].filter(Boolean).join(' / '))}${detailField('Banda u organización',data.integra_organizacion?[data.rol_organizacion,data.nombre_organizacion].filter(Boolean).join(' · '):'No')}${weapons||detailField('Armas o hallazgos','Ninguno')}<div class="detail-section">Puesta a disposición</div>${detailField('Documentos',[data.documento_libertad,data.documento_disposicion].filter(Boolean).join(' · '))}${detailField('Fiscal / Fiscalía',[data.fiscal_nombre,data.fiscalia].filter(Boolean).join(' · '))}${detailField('Dependencia receptora',[data.disposicion_direccion,data.disposicion_region,data.disposicion_division,data.disposicion_departamento,data.disposicion_unidad].filter(Boolean).join(' / '))}${detailField('Nota SICPIP',data.nota_sicpip)}`;
+  document.getElementById('editDetaineeButton').classList.toggle('hidden-control', !isDetaineeAdmin());
+  document.getElementById('deleteDetaineeButton').classList.toggle('hidden-control', !isDetaineeAdmin());
+}
+
+function beginDetaineeEdit() {
+  if (!selectedDetainee || !isDetaineeAdmin()) return;
+  const reason = prompt('Indique el motivo de la modificación. Este texto quedará guardado en Auditoría:');
+  if (!reason?.trim()) return alert('El motivo es obligatorio para editar un detenido.');
+  editingDetaineeId = selectedDetainee.id; editingDetaineeReason = reason.trim(); const p = selectedDetainee.personas || {}; const weapon = selectedDetainee.detencion_armas?.[0] || {};
+  const values = { apellidoPaterno:p.apellido_paterno,apellidoMaterno:p.apellido_materno,nombres:p.nombres,edad:p.edad,genero:p.genero,nacionalidad:p.nacionalidad,tipoDocumento:p.tipo_documento,numeroDocumento:p.numero_documento,fecha:selectedDetainee.fecha,hora:selectedDetainee.hora,motivoDetencion:selectedDetainee.motivo_detencion,esFuncionario:String(Boolean(selectedDetainee.es_funcionario_publico)),entidadPublica:selectedDetainee.entidad_publica,detalleEntidad:selectedDetainee.detalle_entidad_publica,direccionPolicial:selectedDetainee.direccion_policial,direccionRegion:selectedDetainee.direccion_especializada_region,divisionPolicial:selectedDetainee.division_policial,departamentoPolicial:selectedDetainee.departamento_policial,unidadArea:selectedDetainee.unidad_area_equipo,integraOrganizacion:String(Boolean(selectedDetainee.integra_organizacion)),rolOrganizacion:selectedDetainee.rol_organizacion,nombreOrganizacion:selectedDetainee.nombre_organizacion,armaCategoria:weapon.categoria,armaTipo:weapon.tipo,armaCantidad:weapon.cantidad||1,armaObservacion:weapon.observacion,situacionActual:selectedDetainee.situacion_actual,documentoLibertad:selectedDetainee.documento_libertad,documentoDisposicion:selectedDetainee.documento_disposicion,fiscalNombre:selectedDetainee.fiscal_nombre,fiscalia:selectedDetainee.fiscalia,disposicionDireccion:selectedDetainee.disposicion_direccion,disposicionRegion:selectedDetainee.disposicion_region,disposicionDivision:selectedDetainee.disposicion_division,disposicionDepartamento:selectedDetainee.disposicion_departamento,disposicionUnidad:selectedDetainee.disposicion_unidad,notaSicpip:selectedDetainee.nota_sicpip};
+  Object.entries(values).forEach(([name,value]) => setDetaineeField(name,value));
+  window.setDetaineeDependencies?.({ departamento:p.departamento,provincia:p.provincia,distrito:p.distrito,direccion_policial:selectedDetainee.direccion_policial,direccion_especializada_region:selectedDetainee.direccion_especializada_region,division_policial:selectedDetainee.division_policial,departamento_policial:selectedDetainee.departamento_policial,integra_organizacion:selectedDetainee.integra_organizacion,rol_organizacion:selectedDetainee.rol_organizacion,nombre_organizacion:selectedDetainee.nombre_organizacion,arma_categoria:weapon.categoria,arma_tipo:weapon.tipo });
+  crimeList.innerHTML=''; (selectedDetainee.detencion_delitos?.length ? selectedDetainee.detencion_delitos.sort((a,b)=>a.orden-b.orden) : [{}]).forEach(addCrimeRow);
+  document.getElementById('saveDetaineeButton').textContent='Guardar cambios'; document.getElementById('detaineeStatus').textContent=`Editando ${selectedDetainee.codigo}. El motivo quedará registrado en Auditoría.`;
+  detaineeRecordModal.close(); document.querySelector('[data-view="detaineeFormView"]')?.click(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function deleteDetainee() {
+  if (!selectedDetainee || !isDetaineeAdmin()) return;
+  const reason = prompt('Indique el motivo de la eliminación. Este texto quedará guardado en Auditoría:');
+  if (!reason?.trim()) return alert('El motivo es obligatorio para eliminar un detenido.');
+  if (!confirm(`¿Eliminar el registro ${selectedDetainee.codigo}? Esta acción no se puede deshacer.`)) return;
+  const record = selectedDetainee;
+  for (const child of record.detencion_delitos || []) { const { error } = await supabaseClient.from('detencion_delitos').delete().eq('id',child.id); if (error) return alert(`No se pudo eliminar: ${error.message}`); await assignAuditReason('detencion_delitos',child.id,reason.trim()); }
+  for (const child of record.detencion_armas || []) { const { error } = await supabaseClient.from('detencion_armas').delete().eq('id',child.id); if (error) return alert(`No se pudo eliminar: ${error.message}`); await assignAuditReason('detencion_armas',child.id,reason.trim()); }
+  const { error } = await supabaseClient.from('detenciones').delete().eq('id',record.id); if (error) return alert(`No se pudo eliminar: ${error.message}`);
+  await assignAuditReason('detenciones',record.id,reason.trim()); detaineeRecordModal.close(); selectedDetainee=null; await window.loadDetaineeRecords();
+}
 
 window.loadDetaineeDashboard = async function loadDetaineeDashboard() {
   const status = document.getElementById('detaineeDashboardStatus');
@@ -153,9 +258,13 @@ window.loadDetaineeDashboard = async function loadDetaineeDashboard() {
 };
 
 document.getElementById('addCrimeButton').addEventListener('click', () => addCrimeRow());
-document.getElementById('clearDetaineeButton').addEventListener('click', () => { detaineeForm.reset(); window.resetDetaineeDependencies?.(); crimeList.innerHTML=''; addCrimeRow(); document.getElementById('detaineeStatus').textContent='Formulario limpio.'; });
+document.getElementById('clearDetaineeButton').addEventListener('click', () => { editingDetaineeId=null; editingDetaineeReason=''; selectedDetainee=null; detaineeForm.reset(); window.resetDetaineeDependencies?.(); crimeList.innerHTML=''; addCrimeRow(); document.getElementById('saveDetaineeButton').textContent='Registrar detenido'; document.getElementById('detaineeStatus').textContent='Formulario limpio.'; });
 document.getElementById('searchDetaineesButton').addEventListener('click', window.loadDetaineeRecords);
 document.getElementById('refreshDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);
 document.getElementById('applyDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);
+document.getElementById('closeDetaineeRecordModal').addEventListener('click', () => detaineeRecordModal.close());
+document.getElementById('closeDetaineeButton').addEventListener('click', () => detaineeRecordModal.close());
+document.getElementById('editDetaineeButton').addEventListener('click', beginDetaineeEdit);
+document.getElementById('deleteDetaineeButton').addEventListener('click', deleteDetainee);
 detaineeForm.addEventListener('submit', saveDetainee);
 window.initializeDetaineeForm();
