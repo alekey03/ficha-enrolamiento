@@ -6,7 +6,9 @@
   const ROOT_LABELS = {
     FUERO_COMUN: 'Fuero común',
     FUERO_MILITAR_POLICIAL: 'Fuero militar policial',
-    LEYES_ESPECIALES: 'Leyes especiales'
+    LEYES_ESPECIALES: 'Leyes especiales',
+    DIRNIC: 'DIRNIC',
+    DIRNOS: 'DIRNOS'
   };
 
   function htmlEscape(value) {
