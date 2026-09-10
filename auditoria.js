@@ -24,9 +24,27 @@
     return changed.length ? `Campos: ${changed.join(', ')}` : 'Actualización registrada';
   }
 
+  function fieldLabel(value) {
+    return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toLocaleUpperCase('es-PE'));
+  }
+
+  function displayValue(value) {
+    if (value === null || value === undefined || value === '') return '—';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  }
+
   function details(event) {
-    const payload = event.accion === 'DELETE' ? event.datos_anteriores : event.datos_nuevos;
-    return escapeHtml(JSON.stringify(payload || {}, null, 2));
+    const reason = `<div class="audit-reason"><strong>Motivo:</strong> ${escapeHtml(event.motivo || 'No consignado')}</div>`;
+    if (event.accion !== 'UPDATE') {
+      const payload = event.accion === 'DELETE' ? event.datos_anteriores : event.datos_nuevos;
+      return `${reason}<pre>${escapeHtml(JSON.stringify(payload || {}, null, 2))}</pre>`;
+    }
+    const before = event.datos_anteriores || {};
+    const after = event.datos_nuevos || {};
+    const changed = Object.keys(after).filter(key => key !== 'actualizado_en' && JSON.stringify(before[key]) !== JSON.stringify(after[key]));
+    const comparisons = changed.map(key => `<div class="audit-change"><strong>${escapeHtml(fieldLabel(key))}</strong><span><small>Antes</small>${escapeHtml(displayValue(before[key]))}</span><b>→</b><span><small>Después</small>${escapeHtml(displayValue(after[key]))}</span></div>`).join('');
+    return `${reason}${comparisons || '<p>Sin diferencias visibles.</p>'}`;
   }
 
   window.loadAudit = async function loadAudit() {
@@ -68,7 +86,7 @@
       <td><span class="audit-action ${escapeHtml(event.accion.toLocaleLowerCase())}">${escapeHtml(actionLabels[event.accion] || event.accion)}</span></td>
       <td>${escapeHtml(tableLabels[event.tabla] || event.tabla)}</td>
       <td><strong>${escapeHtml(event.codigo || event.registro_id || '—')}</strong><small>${escapeHtml(event.unidad || '')}</small></td>
-      <td><details><summary>${escapeHtml(changeSummary(event))}</summary><pre>${details(event)}</pre></details></td>
+      <td><details><summary>${escapeHtml(changeSummary(event))}</summary><div class="audit-detail">${details(event)}</div></details></td>
     </tr>`).join('');
     result.innerHTML = `<div class="table-wrap audit-table-wrap"><table><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Módulo</th><th>Registro</th><th>Detalle</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   };

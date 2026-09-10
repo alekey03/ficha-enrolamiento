@@ -11,6 +11,7 @@ let currentProfile = null;
 let selectedRecord = null;
 let editingRecordId = null;
 let editingRecordCode = null;
+let editingAuditReason = '';
 let pendingMarkFiles = [];
 let pendingDocumentFiles = [];
 let dashboardRecords = [];
@@ -340,6 +341,7 @@ function setFormView() {
 function cancelEditing() {
   editingRecordId = null;
   editingRecordCode = null;
+  editingAuditReason = '';
   form.reset();
   window.resetVictimLocation?.();
   document.getElementById('cancelEditButton').classList.add('hidden-control');
@@ -350,6 +352,10 @@ function cancelEditing() {
 
 document.getElementById('editRecordButton').addEventListener('click', () => {
   if (!selectedRecord) return;
+  const reason = prompt(`Indique el motivo de la modificación de ${selectedRecord.codigo}:`);
+  if (reason === null) return;
+  if (!reason.trim()) return alert('El motivo de la modificación es obligatorio.');
+  editingAuditReason = reason.trim();
   const fieldMap = {
     apellidoPaterno: 'apellido_paterno', apellidoMaterno: 'apellido_materno', nombres: 'nombres',
     fechaNacimiento: 'fecha_nacimiento', edad: 'edad_registro', madre: 'nombre_madre', padre: 'nombre_padre',
@@ -381,6 +387,9 @@ document.getElementById('cancelEditButton').addEventListener('click', cancelEdit
 
 document.getElementById('deleteRecordButton').addEventListener('click', async () => {
   if (!selectedRecord || currentProfile?.rol !== 'administrador') return;
+  const reason = prompt(`Indique el motivo de la eliminación de ${selectedRecord.codigo}:`);
+  if (reason === null) return;
+  if (!reason.trim()) return alert('El motivo de la eliminación es obligatorio.');
   const confirmed = confirm(`¿Eliminar definitivamente la ficha ${selectedRecord.codigo}? Esta acción no se puede deshacer.`);
   if (!confirmed) return;
 
@@ -400,6 +409,9 @@ document.getElementById('deleteRecordButton').addEventListener('click', async ()
     alert('No se pudo eliminar la ficha.');
     return;
   }
+
+  const { data: reasonSaved, error: reasonError } = await supabaseClient.rpc('asignar_motivo_auditoria', { p_tabla: 'fichas', p_registro_id: selectedRecord.id, p_motivo: reason.trim() });
+  if (reasonError || !reasonSaved) console.error('No se pudo asociar el motivo de auditoría:', reasonError);
 
   const storagePaths = (relatedFiles || []).map(file => file.ruta_privada).filter(Boolean);
   if (storagePaths.length) {
@@ -1258,6 +1270,14 @@ form.addEventListener('submit', async event => {
     return;
   }
 
+  if (editingRecordId) {
+    const { data: reasonSaved, error: reasonError } = await supabaseClient.rpc('asignar_motivo_auditoria', { p_tabla: 'fichas', p_registro_id: editingRecordId, p_motivo: editingAuditReason });
+    if (reasonError || !reasonSaved) {
+      console.error('No se pudo asociar el motivo de auditoría:', reasonError);
+      status.textContent = 'La ficha se guardó, pero no se pudo asociar el motivo en la auditoría.';
+    }
+  }
+
   status.textContent = 'Ficha guardada. Subiendo fotografías…';
   const fileResult = await uploadRecordFiles(savedRecord.id);
   registerButton.disabled = false;
@@ -1265,6 +1285,7 @@ form.addEventListener('submit', async event => {
   const savedCode = editingRecordCode || codigo;
   editingRecordId = null;
   editingRecordCode = null;
+  editingAuditReason = '';
   duplicateApprovedSignature = '';
   form.reset();
   window.resetVictimLocation?.();
