@@ -428,8 +428,21 @@ document.getElementById('printRecordButton').addEventListener('click', async () 
 const SUPABASE_URL = 'https://dbneehfdhnzldzpxrmas.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_avyv1e1Q7if_TFfd-V3T7A_kTeMzm8C';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let profileLoadFailure = '';
+
+async function loadProtectedCatalogs() {
+  const { data, error } = await supabaseClient
+    .from('catalogos_protegidos')
+    .select('clave, contenido')
+    .in('clave', ['delitos', 'dependencias_policiales']);
+  if (error) throw error;
+  const catalogs = Object.fromEntries((data || []).map(item => [item.clave, item.contenido]));
+  if (!catalogs.delitos || !catalogs.dependencias_policiales) throw new Error('Los catálogos protegidos están incompletos.');
+  window.setProtectedCatalogs?.(catalogs);
+}
 
 async function loadCurrentProfile(userId) {
+  profileLoadFailure = '';
   const { data, error } = await supabaseClient
     .from('perfiles')
     .select('id, usuario, nombres, apellidos, unidad, rol, activo')
@@ -442,6 +455,15 @@ async function loadCurrentProfile(userId) {
   }
 
   currentProfile = data;
+  try {
+    await loadProtectedCatalogs();
+  } catch (catalogError) {
+    console.error(catalogError);
+    profileLoadFailure = 'No se pudieron cargar los catálogos protegidos. Revise la instalación en Supabase.';
+    currentProfile = null;
+    window.clearProtectedCatalogs?.();
+    return false;
+  }
   document.querySelectorAll('.admin-only').forEach(element => {
     element.classList.toggle('visible', data.rol === 'administrador');
   });
@@ -674,7 +696,7 @@ document.getElementById('loginForm').addEventListener('submit', async event => {
   const profileLoaded = await loadCurrentProfile(data.user.id);
   if (!profileLoaded) {
     await supabaseClient.auth.signOut();
-    loginError.textContent = 'La cuenta no tiene un perfil activo autorizado.';
+    loginError.textContent = profileLoadFailure || 'La cuenta no tiene un perfil activo autorizado.';
     loginError.classList.add('show');
     return;
   }
@@ -693,6 +715,8 @@ document.getElementById('togglePassword').addEventListener('click', event => {
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await supabaseClient.auth.signOut();
+  currentProfile = null;
+  window.clearProtectedCatalogs?.();
   resetMainView();
   loginScreen.classList.remove('hidden');
 });

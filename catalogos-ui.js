@@ -1,6 +1,7 @@
 (function initializeDependentCatalogs() {
   const GEO = window.CATALOGO_UBIGEO || [];
-  const CRIMES = window.CATALOGO_DELITOS || [];
+  let CRIMES = [];
+  let POLICE = [];
 
   const ROOT_LABELS = {
     FUERO_COMUN: 'Fuero común',
@@ -45,8 +46,9 @@
   }
 
   function bindCascade(selects, roots, placeholders) {
+    let sourceNodes = roots || [];
     const refreshFrom = index => {
-      let nodes = roots;
+      let nodes = sourceNodes;
       for (let level = 0; level < index; level += 1) {
         const node = selectedNode(nodes, selects[level].value);
         nodes = node?.children || [];
@@ -59,20 +61,25 @@
       }
     };
     selects.forEach((select, index) => select?.addEventListener('change', () => refreshFrom(index)));
-    fillSelect(selects[0], roots, placeholders[0]);
+    fillSelect(selects[0], sourceNodes, placeholders[0]);
     for (let index = 1; index < selects.length; index += 1) fillSelect(selects[index], [], placeholders[index]);
     return {
       reset() {
-        fillSelect(selects[0], roots, placeholders[0]);
+        fillSelect(selects[0], sourceNodes, placeholders[0]);
         for (let index = 1; index < selects.length; index += 1) fillSelect(selects[index], [], placeholders[index]);
       },
       set(values = []) {
-        let nodes = roots;
+        let nodes = sourceNodes;
         selects.forEach((select, index) => {
           fillSelect(select, nodes, placeholders[index], values[index] || '');
           const node = selectedNode(nodes, select.value);
           nodes = node?.children || [];
         });
+      },
+      setRoots(nextRoots) {
+        sourceNodes = nextRoots || [];
+        fillSelect(selects[0], sourceNodes, placeholders[0]);
+        for (let index = 1; index < selects.length; index += 1) fillSelect(selects[index], [], placeholders[index]);
       }
     };
   }
@@ -89,7 +96,31 @@
 
   const victimLocation = bindLocation('victim');
   const detaineeLocation = bindLocation('detainee');
+  const policeDependency = bindCascade(
+    ['policeDirection', 'policeRegion', 'policeDivision', 'policeDepartment'].map(id => document.getElementById(id)),
+    POLICE,
+    ['Seleccionar dirección', 'Seleccionar región o dirección', 'Seleccionar división policial', 'Seleccionar departamento policial']
+  );
   let victimLocationLegacy = '';
+
+  const organizationToggle = document.getElementById('criminalOrganization');
+  const organizationRole = document.getElementById('organizationRole');
+  const organizationName = document.getElementById('organizationName');
+  function updateOrganizationFields() {
+    const enabled = organizationToggle?.value === 'true';
+    if (organizationRole) {
+      organizationRole.disabled = !enabled;
+      organizationRole.required = enabled;
+      if (!enabled) organizationRole.value = '';
+    }
+    if (organizationName) {
+      organizationName.disabled = !enabled;
+      organizationName.required = enabled;
+      if (!enabled) organizationName.value = '';
+    }
+  }
+  organizationToggle?.addEventListener('change', updateOrganizationFields);
+  updateOrganizationFields();
 
   window.getVictimLocation = function getVictimLocation() {
     const selected = ['victimDepartment', 'victimProvince', 'victimDistrict']
@@ -100,6 +131,11 @@
   };
   window.resetVictimLocation = () => { victimLocationLegacy = ''; victimLocation?.reset(); };
   window.resetDetaineeLocation = () => detaineeLocation?.reset();
+  window.resetDetaineeDependencies = () => {
+    detaineeLocation?.reset();
+    policeDependency?.reset();
+    updateOrganizationFields();
+  };
   window.setVictimLocation = function setVictimLocation(storedValue) {
     const wanted = String(storedValue || '').split('/').map(value => value.trim());
     victimLocationLegacy = '';
@@ -124,8 +160,32 @@
       row.querySelector('[data-field="specific"]'),
       row.querySelector('[data-field="subtype"]')
     ];
-    const cascade = bindCascade(selects, CRIMES, ['Seleccionar fuero o ley', 'Seleccionar delito general', 'Seleccionar delito específico', 'Seleccionar subtipo']);
+    const cascade = row._crimeCascade || bindCascade(selects, CRIMES, ['Seleccionar fuero o ley', 'Seleccionar delito general', 'Seleccionar delito específico', 'Seleccionar subtipo']);
+    row._crimeCascade = cascade;
+    cascade.setRoots(CRIMES);
     cascade.set([values.fuero_ley_especial, values.delito_general, values.delito_especifico, values.subtipo]);
     return cascade;
+  };
+
+  window.setProtectedCatalogs = function setProtectedCatalogs(catalogs) {
+    CRIMES = Array.isArray(catalogs?.delitos) ? catalogs.delitos : [];
+    POLICE = Array.isArray(catalogs?.dependencias_policiales) ? catalogs.dependencias_policiales : [];
+    policeDependency?.setRoots(POLICE);
+    document.querySelectorAll('.crime-row').forEach(row => {
+      const values = {
+        fuero_ley_especial: row.querySelector('[data-field="jurisdiction"]')?.value || '',
+        delito_general: row.querySelector('[data-field="general"]')?.value || '',
+        delito_especifico: row.querySelector('[data-field="specific"]')?.value || '',
+        subtipo: row.querySelector('[data-field="subtype"]')?.value || ''
+      };
+      window.createCrimeCascade(row, values);
+    });
+  };
+
+  window.clearProtectedCatalogs = function clearProtectedCatalogs() {
+    CRIMES = [];
+    POLICE = [];
+    policeDependency?.setRoots([]);
+    document.querySelectorAll('.crime-row').forEach(row => row._crimeCascade?.setRoots([]));
   };
 }());

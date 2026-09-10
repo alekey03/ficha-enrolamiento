@@ -79,11 +79,14 @@ async function saveDetainee(event) {
   let detentionId;
   try {
     personResult = await findOrCreatePerson();
+    const belongsToOrganization = detaineeValue('integraOrganizacion') === 'true';
+    const organizationRole = belongsToOrganization ? detaineeValue('rolOrganizacion') : '';
+    const organizationName = belongsToOrganization ? detaineeValue('nombreOrganizacion') : '';
     const detention = {
       persona_id: personResult.id, fecha: detaineeValue('fecha'), hora: nullable(detaineeValue('hora')),
       es_funcionario_publico: detaineeValue('esFuncionario') === 'true', entidad_publica: nullable(detaineeValue('entidadPublica')), detalle_entidad_publica: nullable(detaineeValue('detalleEntidad')), motivo_detencion: nullable(detaineeValue('motivoDetencion')),
       direccion_policial: nullable(detaineeValue('direccionPolicial')), direccion_especializada_region: nullable(detaineeValue('direccionRegion')), division_policial: nullable(detaineeValue('divisionPolicial')), departamento_policial: nullable(detaineeValue('departamentoPolicial')), unidad_area_equipo: nullable(detaineeValue('unidadArea')),
-      integra_organizacion: detaineeValue('integraOrganizacion') === 'true', nombre_organizacion: nullable(detaineeValue('nombreOrganizacion')), situacion_actual: nullable(detaineeValue('situacionActual')), documento_libertad: nullable(detaineeValue('documentoLibertad')), documento_disposicion: nullable(detaineeValue('documentoDisposicion')),
+      integra_organizacion: belongsToOrganization, rol_organizacion: nullable(organizationRole), nombre_organizacion: nullable(organizationName), situacion_actual: nullable(detaineeValue('situacionActual')), documento_libertad: nullable(detaineeValue('documentoLibertad')), documento_disposicion: nullable(detaineeValue('documentoDisposicion')),
       fiscal_nombre: nullable(detaineeValue('fiscalNombre')), fiscalia: nullable(detaineeValue('fiscalia')), disposicion_direccion: nullable(detaineeValue('disposicionDireccion')), disposicion_region: nullable(detaineeValue('disposicionRegion')), disposicion_division: nullable(detaineeValue('disposicionDivision')), disposicion_departamento: nullable(detaineeValue('disposicionDepartamento')), disposicion_unidad: nullable(detaineeValue('disposicionUnidad')), nota_sicpip: nullable(detaineeValue('notaSicpip')),
       unidad: currentProfile.unidad, creado_por: currentProfile.id
     };
@@ -98,7 +101,7 @@ async function saveDetainee(event) {
       if (weaponError) throw weaponError;
     }
     status.className = 'success-text'; status.textContent = `✓ Detenido registrado correctamente con código ${data.codigo}.`;
-    detaineeForm.reset(); window.resetDetaineeLocation?.(); crimeList.innerHTML = ''; addCrimeRow();
+    detaineeForm.reset(); window.resetDetaineeDependencies?.(); crimeList.innerHTML = ''; addCrimeRow();
   } catch (error) {
     console.error(error);
     if (detentionId) await supabaseClient.from('detenciones').delete().eq('id', detentionId);
@@ -150,7 +153,7 @@ window.loadDetaineeDashboard = async function loadDetaineeDashboard() {
 };
 
 document.getElementById('addCrimeButton').addEventListener('click', () => addCrimeRow());
-document.getElementById('clearDetaineeButton').addEventListener('click', () => { detaineeForm.reset(); window.resetDetaineeLocation?.(); crimeList.innerHTML=''; addCrimeRow(); document.getElementById('detaineeStatus').textContent='Formulario limpio.'; });
+document.getElementById('clearDetaineeButton').addEventListener('click', () => { detaineeForm.reset(); window.resetDetaineeDependencies?.(); crimeList.innerHTML=''; addCrimeRow(); document.getElementById('detaineeStatus').textContent='Formulario limpio.'; });
 document.getElementById('searchDetaineesButton').addEventListener('click', window.loadDetaineeRecords);
 document.getElementById('refreshDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);
 document.getElementById('applyDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);
