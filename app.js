@@ -941,6 +941,38 @@ progressStepLabels.forEach(label => {
 
 window.addEventListener('scroll', updateFormStepFromScroll, { passive: true });
 
+const detaineeFormSteps = [...document.querySelectorAll('.detainee-form-step')];
+const detaineeStepLabels = [...document.querySelectorAll('.detainee-progress-labels [data-detainee-step-target]')];
+const detaineeProgressBar = document.querySelector('.detainee-progress i');
+
+function setActiveDetaineeStep(stepNumber) {
+  detaineeStepLabels.forEach((label, index) => label.classList.toggle('active', index + 1 === stepNumber));
+  detaineeProgressBar.style.width = `${stepNumber * 20}%`;
+}
+
+function updateDetaineeStepFromScroll() {
+  if (!document.getElementById('detaineeFormView').classList.contains('active')) return;
+  const threshold = window.innerWidth <= 900 ? 150 : 180;
+  let activeStep = 1;
+  detaineeFormSteps.forEach((section, index) => {
+    if (section.getBoundingClientRect().top <= threshold) activeStep = index + 1;
+  });
+  setActiveDetaineeStep(activeStep);
+}
+
+detaineeStepLabels.forEach(label => {
+  const goToStep = () => document.getElementById(label.dataset.detaineeStepTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  label.addEventListener('click', goToStep);
+  label.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      goToStep();
+    }
+  });
+});
+
+window.addEventListener('scroll', updateDetaineeStepFromScroll, { passive: true });
+
 const mobileMenuButton = document.querySelector('.menu');
 const mobileSidebar = document.querySelector('.sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
