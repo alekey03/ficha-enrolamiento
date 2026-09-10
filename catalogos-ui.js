@@ -36,7 +36,8 @@
     if (!select) return;
     const options = [`<option value="">${placeholder}</option>`];
     for (const node of nodes || []) {
-      options.push(`<option value="${htmlEscape(node.value)}">${htmlEscape(readable(node.value))}</option>`);
+      const label = select.dataset.uppercaseOptions === 'true' ? readable(node.value).toLocaleUpperCase('es-PE') : readable(node.value);
+      options.push(`<option value="${htmlEscape(node.value)}">${htmlEscape(label)}</option>`);
     }
     select.innerHTML = options.join('');
     select.disabled = !(nodes && nodes.length);
