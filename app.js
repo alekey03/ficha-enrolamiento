@@ -434,10 +434,10 @@ async function loadProtectedCatalogs() {
   const { data, error } = await supabaseClient
     .from('catalogos_protegidos')
     .select('clave, contenido')
-    .in('clave', ['delitos', 'dependencias_policiales']);
+    .in('clave', ['delitos', 'dependencias_policiales', 'armas']);
   if (error) throw error;
   const catalogs = Object.fromEntries((data || []).map(item => [item.clave, item.contenido]));
-  if (!catalogs.delitos || !catalogs.dependencias_policiales) throw new Error('Los catálogos protegidos están incompletos.');
+  if (!catalogs.delitos || !catalogs.dependencias_policiales || !catalogs.armas) throw new Error('Los catálogos protegidos están incompletos.');
   window.setProtectedCatalogs?.(catalogs);
 }
 

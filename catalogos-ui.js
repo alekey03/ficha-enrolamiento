@@ -2,11 +2,15 @@
   const GEO = window.CATALOGO_UBIGEO || [];
   let CRIMES = [];
   let POLICE = [];
+  let WEAPONS = [];
 
   const ROOT_LABELS = {
     FUERO_COMUN: 'Fuero común',
     FUERO_MILITAR_POLICIAL: 'Fuero militar policial',
     LEYES_ESPECIALES: 'Leyes especiales',
+    ARMA_DE_FUEGO: 'Arma de fuego',
+    ARMA_BLANCA: 'Arma blanca',
+    OTRO: 'Otro',
     DIRNIC: 'DIRNIC',
     DIRNOS: 'DIRNOS'
   };
@@ -104,6 +108,11 @@
     POLICE,
     ['Seleccionar dirección', 'Seleccionar región o dirección', 'Seleccionar división policial', 'Seleccionar departamento policial']
   );
+  const weaponDependency = bindCascade(
+    ['weaponCategory', 'weaponType'].map(id => document.getElementById(id)),
+    WEAPONS,
+    ['Ninguna', 'Seleccionar tipo de arma']
+  );
   let victimLocationLegacy = '';
 
   const organizationToggle = document.getElementById('criminalOrganization');
@@ -137,6 +146,7 @@
   window.resetDetaineeDependencies = () => {
     detaineeLocation?.reset();
     policeDependency?.reset();
+    weaponDependency?.reset();
     updateOrganizationFields();
   };
   window.setVictimLocation = function setVictimLocation(storedValue) {
@@ -173,7 +183,9 @@
   window.setProtectedCatalogs = function setProtectedCatalogs(catalogs) {
     CRIMES = Array.isArray(catalogs?.delitos) ? catalogs.delitos : [];
     POLICE = Array.isArray(catalogs?.dependencias_policiales) ? catalogs.dependencias_policiales : [];
+    WEAPONS = Array.isArray(catalogs?.armas) ? catalogs.armas : [];
     policeDependency?.setRoots(POLICE);
+    weaponDependency?.setRoots(WEAPONS);
     document.querySelectorAll('.crime-row').forEach(row => {
       const values = {
         fuero_ley_especial: row.querySelector('[data-field="jurisdiction"]')?.value || '',
@@ -188,7 +200,9 @@
   window.clearProtectedCatalogs = function clearProtectedCatalogs() {
     CRIMES = [];
     POLICE = [];
+    WEAPONS = [];
     policeDependency?.setRoots([]);
+    weaponDependency?.setRoots([]);
     document.querySelectorAll('.crime-row').forEach(row => row._crimeCascade?.setRoots([]));
   };
 }());
