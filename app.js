@@ -871,6 +871,12 @@ document.querySelectorAll('[data-view]').forEach(button => {
 
 document.querySelectorAll('.nav-group-toggle').forEach(toggle => toggle.addEventListener('click', () => {
   const group = toggle.closest('.nav-group');
+  if (window.innerWidth > 900 && document.body.classList.contains('sidebar-collapsed')) {
+    setSidebarCollapsed(false);
+    group.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+    return;
+  }
   const opening = !group.classList.contains('open');
   group.classList.toggle('open', opening);
   toggle.setAttribute('aria-expanded', String(opening));
@@ -938,6 +944,21 @@ window.addEventListener('scroll', updateFormStepFromScroll, { passive: true });
 const mobileMenuButton = document.querySelector('.menu');
 const mobileSidebar = document.querySelector('.sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const desktopSidebarButton = document.getElementById('sidebarCollapse');
+
+function setSidebarCollapsed(collapsed, remember = true) {
+  const shouldCollapse = Boolean(collapsed) && window.innerWidth > 900;
+  document.body.classList.toggle('sidebar-collapsed', shouldCollapse);
+  desktopSidebarButton.setAttribute('aria-expanded', String(!shouldCollapse));
+  desktopSidebarButton.setAttribute('aria-label', shouldCollapse ? 'Expandir menú lateral' : 'Contraer menú lateral');
+  desktopSidebarButton.title = shouldCollapse ? 'Expandir menú lateral' : 'Contraer menú lateral';
+  if (remember) localStorage.setItem('sidebarCollapsed', String(Boolean(collapsed)));
+}
+
+desktopSidebarButton.addEventListener('click', () => {
+  setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+});
+setSidebarCollapsed(localStorage.getItem('sidebarCollapsed') === 'true', false);
 
 function closeMobileMenu() {
   mobileSidebar.classList.remove('open');
@@ -960,7 +981,12 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape') closeMobileMenu();
 });
 window.addEventListener('resize', () => {
-  if (window.innerWidth > 900) closeMobileMenu();
+  if (window.innerWidth > 900) {
+    closeMobileMenu();
+    setSidebarCollapsed(localStorage.getItem('sidebarCollapsed') === 'true', false);
+  } else {
+    document.body.classList.remove('sidebar-collapsed');
+  }
 });
 
 function renderCapturedFiles(inputId, files, previewId, statusId, emptyText) {

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260904-analytics" />
+  <link rel="stylesheet" href="styles.css?v=20260910-sidebar" />
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -26,6 +26,7 @@
     <p class="login-footer">Uso exclusivo para personal autorizado</p>
   </section>
   <aside class="sidebar">
+    <button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Contraer menú lateral" aria-expanded="true" title="Contraer menú lateral"><span aria-hidden="true">☰</span></button>
     <div class="brand"><img class="institution-logo" src="assets/logo-diriptim.png" alt="Escudo DIRIPTIM PNP"><div><strong>División de Investigación de Trata de Personas</strong><small>Sistema institucional</small></div></div>
     <nav aria-label="Navegación principal">
       <div class="nav-group open" data-nav-group="victims">
@@ -264,7 +265,7 @@
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="app.js?v=20260906-admin-nav"></script>
+  <script src="app.js?v=20260910-sidebar"></script>
   <script src="detenidos.js?v=20260906-dashboard"></script>
   <script src="exportaciones.js?v=20260908-2"></script>
 </body>

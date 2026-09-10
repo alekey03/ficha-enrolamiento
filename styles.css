@@ -173,6 +173,31 @@
 .crime-row-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--navy);font-size:12px}
 .remove-crime{border:0;background:#f8dfdf;color:#8b1e1e;width:28px;height:28px;border-radius:50%;font-size:18px;cursor:pointer}
 .cols-5{grid-template-columns:.7fr 1.1fr 1.2fr 1.2fr 1fr}
+
+/* Menú lateral contraíble en escritorio */
+.sidebar-collapse{display:grid;place-items:center;flex:0 0 auto;width:40px;height:40px;margin:0 0 14px auto;border:1px solid rgba(255,255,255,.24);border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font-size:21px;line-height:1;cursor:pointer;transition:background .2s ease,transform .2s ease}
+.sidebar-collapse:hover{background:rgba(255,255,255,.16)}
+.sidebar-collapse:focus-visible{outline:3px solid rgba(255,213,78,.65);outline-offset:2px}
+.sidebar,main,.actions{transition:width .25s ease,margin-left .25s ease,left .25s ease,padding .25s ease}
+@media(min-width:901px){
+  body.sidebar-collapsed .sidebar{width:82px;padding-left:12px;padding-right:12px}
+  body.sidebar-collapsed main{margin-left:82px}
+  body.sidebar-collapsed .actions{left:82px}
+  body.sidebar-collapsed .sidebar-collapse{margin-left:auto;margin-right:auto}
+  body.sidebar-collapsed .brand{justify-content:center;padding-left:0;padding-right:0}
+  body.sidebar-collapsed .brand>div{display:none}
+  body.sidebar-collapsed .brand .institution-logo{width:46px;height:46px}
+  body.sidebar-collapsed .nav-group-toggle{justify-content:center;padding-left:0;padding-right:0}
+  body.sidebar-collapsed .nav-group-toggle>span{width:auto}
+  body.sidebar-collapsed .nav-group-toggle strong,
+  body.sidebar-collapsed .nav-group-toggle i,
+  body.sidebar-collapsed .nav-submenu{display:none!important}
+  body.sidebar-collapsed .sidebar>.security-note{justify-content:center;padding-left:0;padding-right:0}
+  body.sidebar-collapsed .security-note>div{display:none}
+  body.sidebar-collapsed .nav-item{font-size:0;text-align:center;padding-left:0;padding-right:0}
+  body.sidebar-collapsed .nav-item span{width:auto;font-size:17px}
+}
+@media(max-width:900px){.sidebar-collapse{display:none}}
 .detainee-save{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0;padding:18px 22px}
 .detainee-save p{margin:0;color:var(--muted);font-size:11px}.detainee-save>div{display:flex;gap:10px}
 .success-text{color:#17633f!important;font-weight:700}.error-text{color:#a12828!important;font-weight:700}
