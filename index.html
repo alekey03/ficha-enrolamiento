@@ -139,7 +139,9 @@
         <div class="grid cols-3">
           <label class="span-2">Motivo de intervención<textarea name="motivo" rows="2"></textarea></label>
           <label>Fecha<input name="fechaIntervencion" type="date"></label>
-          <label class="span-2">Lugar<input name="lugar"></label>
+          <label>Departamento<select name="intervencionDepartamento" id="victimDepartment"><option value="">Seleccionar departamento</option></select></label>
+          <label>Provincia<select name="intervencionProvincia" id="victimProvince" disabled><option value="">Seleccione primero un departamento</option></select></label>
+          <label>Distrito<select name="intervencionDistrito" id="victimDistrict" disabled><option value="">Seleccione primero una provincia</option></select></label>
           <label>Unidad<input name="unidad" value="DIVITP-DIRCTPTIM-PNP"></label>
           <label>Grado del responsable<input name="grado"></label>
           <label>Apellidos del responsable<input name="responsableApellidos"></label>
@@ -208,7 +210,7 @@
         <section class="card detainee-section detainee-form-step" id="stepDetaineeIdentification" data-detainee-step="1"><div class="section-heading"><span class="number">01</span><div><h2>Identificación</h2><p>Datos personales y documento de identidad.</p></div><span class="required-note">* Campos obligatorios</span></div><div class="grid cols-4">
           <label>Apellido paterno *<input name="apellidoPaterno" required></label><label>Apellido materno<input name="apellidoMaterno"></label><label class="span-2">Nombres *<input name="nombres" required></label>
           <label>Edad<input name="edad" type="number" min="0" max="120"></label><label>Género<select name="genero"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option><option>Otro</option><option>No consignado</option></select></label><label>Nacionalidad<select name="nacionalidad"><option value="">Seleccionar</option><option>Perú</option><option>Venezuela</option><option>Colombia</option><option>Bolivia</option><option>Ecuador</option><option>Brasil</option><option>Chile</option><option>Argentina</option><option>Uruguay</option><option>España</option><option>Otra nacionalidad</option></select></label><label>Tipo de documento<select name="tipoDocumento"><option value="">Seleccionar</option><option>DNI</option><option>C.E.</option><option>Pasaporte</option><option>Cédula de identidad</option><option>Sin documento</option></select></label>
-          <label>Número de documento<input name="numeroDocumento"></label><label>Departamento<input name="departamento"></label><label>Provincia<input name="provincia"></label><label>Distrito<input name="distrito"></label>
+          <label>Número de documento<input name="numeroDocumento"></label><label>Departamento<select name="departamento" id="detaineeDepartment"><option value="">Seleccionar departamento</option></select></label><label>Provincia<select name="provincia" id="detaineeProvince" disabled><option value="">Seleccione primero un departamento</option></select></label><label>Distrito<select name="distrito" id="detaineeDistrict" disabled><option value="">Seleccione primero una provincia</option></select></label>
         </div></section>
         <section class="card detainee-section detainee-form-step" id="stepDetaineeDetention" data-detainee-step="2"><div class="section-heading"><span class="number">02</span><div><h2>Datos de la detención</h2><p>Fecha, hora, motivo y condición del intervenido.</p></div></div><div class="grid cols-4"><label>Fecha *<input name="fecha" type="date" required></label><label>Hora<input name="hora" type="time"></label><label>Motivo<select name="motivoDetencion"><option value="">Seleccionar</option><option>Flagrancia</option><option>Detención preliminar</option><option>Orden judicial</option><option>Otro</option></select></label><label>Funcionario/servidor público<select name="esFuncionario"><option value="false">No</option><option value="true">Sí</option></select></label><label class="span-2">Entidad pública<input name="entidadPublica"></label><label class="span-2">Detalle de entidad<input name="detalleEntidad"></label></div></section>
         <section class="card detainee-section detainee-form-step" id="stepDetaineeCrimes" data-detainee-step="3"><div class="section-heading"><span class="number">03</span><div><h2>Delitos atribuidos</h2><p>Agregue uno o varios delitos sin duplicar columnas.</p></div><button class="secondary compact" id="addCrimeButton" type="button">＋ Agregar delito</button></div><div id="crimeList" class="crime-list"></div></section>
@@ -275,8 +277,10 @@
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="app.js?v=20260910-detainee-progress"></script>
-  <script src="detenidos.js?v=20260906-dashboard"></script>
+  <script src="catalogos.js?v=20260910-dependent-lists"></script>
+  <script src="catalogos-ui.js?v=20260910-dependent-lists"></script>
+  <script src="app.js?v=20260910-dependent-lists"></script>
+  <script src="detenidos.js?v=20260910-dependent-lists"></script>
   <script src="exportaciones.js?v=20260908-2"></script>
 </body>
 </html>

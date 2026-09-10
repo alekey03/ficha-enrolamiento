@@ -21,14 +21,11 @@ function addCrimeRow(values = {}) {
   row.innerHTML = `<div class="crime-row-heading"><strong>Delito ${order}</strong><button type="button" class="remove-crime" aria-label="Quitar delito">×</button></div>
     <div class="grid cols-5">
       <label>Tentativa<select data-field="attempt"><option value="false">No</option><option value="true">Sí</option></select></label>
-      <label>Fuero/Ley especial<select data-field="jurisdiction"><option value="">Seleccionar</option><option>Fuero común</option><option>Leyes especiales</option></select></label>
-      <label>Delito general<input data-field="general"></label><label>Delito específico<input data-field="specific"></label><label>Subtipo<input data-field="subtype"></label>
+      <label>Fuero/Ley especial<select data-field="jurisdiction"><option value="">Seleccionar fuero o ley</option></select></label>
+      <label>Delito general<select data-field="general" disabled><option value="">Seleccione primero un fuero</option></select></label><label>Delito específico<select data-field="specific" disabled><option value="">Seleccione primero el delito general</option></select></label><label>Subtipo<select data-field="subtype" disabled><option value="">Seleccione primero el delito específico</option></select></label>
     </div>`;
   row.querySelector('[data-field="attempt"]').value = String(values.es_tentativa ?? false);
-  row.querySelector('[data-field="jurisdiction"]').value = values.fuero_ley_especial || '';
-  row.querySelector('[data-field="general"]').value = values.delito_general || '';
-  row.querySelector('[data-field="specific"]').value = values.delito_especifico || '';
-  row.querySelector('[data-field="subtype"]').value = values.subtipo || '';
+  window.createCrimeCascade?.(row, values);
   row.querySelector('.remove-crime').addEventListener('click', () => {
     if (crimeList.children.length === 1) return;
     row.remove();
@@ -101,7 +98,7 @@ async function saveDetainee(event) {
       if (weaponError) throw weaponError;
     }
     status.className = 'success-text'; status.textContent = `✓ Detenido registrado correctamente con código ${data.codigo}.`;
-    detaineeForm.reset(); crimeList.innerHTML = ''; addCrimeRow();
+    detaineeForm.reset(); window.resetDetaineeLocation?.(); crimeList.innerHTML = ''; addCrimeRow();
   } catch (error) {
     console.error(error);
     if (detentionId) await supabaseClient.from('detenciones').delete().eq('id', detentionId);
@@ -153,7 +150,7 @@ window.loadDetaineeDashboard = async function loadDetaineeDashboard() {
 };
 
 document.getElementById('addCrimeButton').addEventListener('click', () => addCrimeRow());
-document.getElementById('clearDetaineeButton').addEventListener('click', () => { detaineeForm.reset(); crimeList.innerHTML=''; addCrimeRow(); document.getElementById('detaineeStatus').textContent='Formulario limpio.'; });
+document.getElementById('clearDetaineeButton').addEventListener('click', () => { detaineeForm.reset(); window.resetDetaineeLocation?.(); crimeList.innerHTML=''; addCrimeRow(); document.getElementById('detaineeStatus').textContent='Formulario limpio.'; });
 document.getElementById('searchDetaineesButton').addEventListener('click', window.loadDetaineeRecords);
 document.getElementById('refreshDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);
 document.getElementById('applyDetaineeDashboard').addEventListener('click', window.loadDetaineeDashboard);

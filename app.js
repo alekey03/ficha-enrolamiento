@@ -341,6 +341,7 @@ function cancelEditing() {
   editingRecordId = null;
   editingRecordCode = null;
   form.reset();
+  window.resetVictimLocation?.();
   document.getElementById('cancelEditButton').classList.add('hidden-control');
   registerButton.textContent = 'Registrar ficha';
   status.textContent = '';
@@ -355,7 +356,7 @@ document.getElementById('editRecordButton').addEventListener('click', () => {
     estadoCivil: 'estado_civil', ocupacion: 'ocupacion', instruccion: 'grado_instruccion', nacionalidad: 'nacionalidad',
     redes: 'redes_sociales', domicilio: 'domicilio', telefono: 'telefono', correo: 'correo', estatura: 'estatura',
     cabello: 'cabello', colorCabello: 'color_cabello', caracteristicas: 'caracteristicas_fisicas', marcas: 'cicatrices_tatuajes',
-    tipoDocumento: 'tipo_documento', numeroDocumento: 'numero_documento', motivo: 'motivo_intervencion', lugar: 'lugar_intervencion',
+    tipoDocumento: 'tipo_documento', numeroDocumento: 'numero_documento', motivo: 'motivo_intervencion',
     fechaIntervencion: 'fecha_intervencion', unidad: 'unidad', grado: 'responsable_grado',
     responsableApellidos: 'responsable_apellidos', responsableNombres: 'responsable_nombres'
   };
@@ -366,6 +367,7 @@ document.getElementById('editRecordButton').addEventListener('click', () => {
     if (formName === 'nacionalidad' && /^peru$/i.test(value)) value = 'Perú';
     if (field) field.value = value;
   });
+  window.setVictimLocation?.(selectedRecord.lugar_intervencion || '');
   document.getElementById('consent').checked = true;
   editingRecordId = selectedRecord.id;
   editingRecordCode = selectedRecord.codigo;
@@ -1201,7 +1203,7 @@ form.addEventListener('submit', async event => {
     tipo_documento: emptyToNull(values.tipoDocumento),
     numero_documento: emptyToNull(values.numeroDocumento),
     motivo_intervencion: emptyToNull(values.motivo),
-    lugar_intervencion: emptyToNull(values.lugar),
+    lugar_intervencion: emptyToNull(window.getVictimLocation?.() || ''),
     fecha_intervencion: emptyToNull(values.fechaIntervencion),
     unidad: currentProfile.unidad,
     responsable_grado: emptyToNull(values.grado),
@@ -1239,6 +1241,7 @@ form.addEventListener('submit', async event => {
   editingRecordCode = null;
   duplicateApprovedSignature = '';
   form.reset();
+  window.resetVictimLocation?.();
   document.getElementById('cancelEditButton').classList.add('hidden-control');
   photoLabel.style.backgroundImage = '';
   photoLabel.classList.remove('has-photo');
