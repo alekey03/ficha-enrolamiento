@@ -22,8 +22,7 @@
   function counts(records, level) { return records.reduce((result, record) => { const key=recordKey(record,level); if (key && !key.startsWith('|')) result[key]=(result[key]||0)+1; return result; },{}); }
   function ensure(id) {
     if (instances.has(id)) return instances.get(id);
-    const map=L.map(id,{zoomControl:true}).setView([-9.2,-75.1],5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map);
+    const map=L.map(id,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:12,zoomSnap:.25,preferCanvas:true}).setView([-9.2,-75.1],5);
     const instance={map,layer:null,records:[],level:'department',department:null,province:null,label:'casos'}; instances.set(id,instance); return instance;
   }
   function summary(id, instance, shown, located) {
@@ -37,10 +36,12 @@
     if(instance.level==='district') features=features.filter(feature=>featureInfo('district',feature).parent===instance.province.code);
     const relevant=instance.records.filter(record=>instance.level==='department'||(normalize(record.department)===normalize(instance.department.name)&&(instance.level==='province'||normalize(record.province)===normalize(instance.province.name))));
     const totals=counts(relevant,instance.level); const maximum=Math.max(0,...Object.values(totals)); if(instance.layer) instance.layer.remove();
-    instance.layer=L.geoJSON({type:'FeatureCollection',features},{style:feature=>({color:'#a87916',weight:1.2,fillColor:color(totals[featureKey(feature,instance.level)]||0,maximum),fillOpacity:.82}),onEachFeature:(feature,layer)=>{
+    instance.map.invalidateSize({pan:false});
+    instance.layer=L.geoJSON({type:'FeatureCollection',features},{style:feature=>({color:'#b88718',weight:1.25,fillColor:color(totals[featureKey(feature,instance.level)]||0,maximum),fillOpacity:.9}),onEachFeature:(feature,layer)=>{
       const info=featureInfo(instance.level,feature); const amount=totals[featureKey(feature,instance.level)]||0; layer.bindTooltip(`<strong>${title(info.name)}</strong><br>${amount} ${instance.label}`,{sticky:true});
       layer.on({mouseover:()=>layer.setStyle({weight:2.5,color:'#155c3d'}),mouseout:()=>instance.layer.resetStyle(layer),click:()=>{if(instance.level==='department'){instance.department=info;instance.level='province';draw(id);}else if(instance.level==='province'){instance.province=info;instance.level='district';draw(id);}else layer.openTooltip();}});
-    }}).addTo(instance.map); if(features.length) instance.map.fitBounds(instance.layer.getBounds(),{padding:[18,18]}); summary(id,instance,relevant.length,Object.values(totals).reduce((sum,value)=>sum+value,0)); setTimeout(()=>instance.map.invalidateSize(),0);
+    }}).addTo(instance.map); summary(id,instance,relevant.length,Object.values(totals).reduce((sum,value)=>sum+value,0));
+    if(features.length){const bounds=instance.layer.getBounds();instance.map.setMaxBounds(null);instance.map.setMaxBounds(bounds.pad(.35));setTimeout(()=>{instance.map.invalidateSize({pan:false});instance.map.fitBounds(bounds,{padding:[24,24],animate:false});},80);}
   }
   window.renderCrimeMap=async(id,records,label='casos')=>{if(!window.L||!document.getElementById(id))return;const instance=ensure(id);instance.records=records||[];instance.label=label;try{await draw(id);}catch(error){console.error(error);document.getElementById(id).innerHTML='<div class="map-error">No se pudo cargar el mapa.</div>';}};
   document.addEventListener('click',event=>{const button=event.target.closest('[data-map-back]');if(!button)return;const instance=instances.get(button.dataset.mapBack);if(!instance)return;if(instance.level==='district'){instance.level='province';instance.province=null;}else{instance.level='department';instance.department=null;}draw(button.dataset.mapBack);});
