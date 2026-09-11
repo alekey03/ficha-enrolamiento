@@ -72,6 +72,7 @@
         <label>Hasta<input id="dashboardDateTo" type="date" disabled></label>
         <button class="primary" id="applyDashboardFilters">Aplicar filtros</button>
       </div>
+      <article class="card crime-map-card"><div class="crime-map-heading"><div><small>MAPA INTERACTIVO</small><h2>Mapa de víctimas</h2><p>Seleccione un departamento para ver sus provincias y luego sus distritos.</p></div><button class="secondary" data-map-back="victimCrimeMap" hidden>← Volver al Perú</button></div><div class="crime-map-layout"><div id="victimCrimeMap" class="crime-map"></div><aside class="crime-map-summary" data-map-summary="victimCrimeMap"><strong>Perú</strong><span>Consultando información…</span></aside></div></article>
       <div class="privacy-banner"><span>🔒</span><div><strong>Información estadística protegida</strong><p>Los indicadores no muestran nombres y respetan los permisos asignados a cada cuenta.</p></div></div>
       <div class="dashboard-stats">
         <article><small>TOTAL DE VÍCTIMAS</small><strong id="dashboardTotal">—</strong><span>Fichas registradas</span></article>
@@ -87,7 +88,6 @@
         <article class="card chart-card"><div class="chart-heading"><div><h3>Por estado civil</h3><p>Situación civil registrada</p></div></div><div id="civilStatusChart" class="bar-chart"></div></article>
         <article class="card chart-card chart-wide"><div class="chart-heading"><div><h3>Evolución mensual</h3><p>Fichas registradas por mes en el periodo seleccionado</p></div></div><div id="monthlyChart" class="monthly-chart"></div></article>
       </div>
-      <article class="card crime-map-card"><div class="crime-map-heading"><div><small>MAPA INTERACTIVO</small><h2>Mapa de víctimas</h2><p>Seleccione un departamento para ver sus provincias y luego sus distritos.</p></div><button class="secondary" data-map-back="victimCrimeMap" hidden>← Volver al Perú</button></div><div class="crime-map-layout"><div id="victimCrimeMap" class="crime-map"></div><aside class="crime-map-summary" data-map-summary="victimCrimeMap"><strong>Perú</strong><span>Consultando información…</span></aside></div></article>
     </section>
 
     <div id="formView" class="view">
@@ -191,11 +191,11 @@
     <section id="detaineeDashboardView" class="view dashboard-view detainee-dashboard">
       <div class="records-toolbar"><div><h2>Resumen de personas detenidas</h2><p>Indicadores consolidados según los permisos de su unidad.</p></div><button class="secondary" id="refreshDetaineeDashboard">↻ Actualizar</button></div>
       <div class="card dashboard-filters detainee-dashboard-filters"><label>Desde<input id="detaineeDashboardFrom" type="date"></label><label>Hasta<input id="detaineeDashboardTo" type="date"></label><button class="primary" id="applyDetaineeDashboard" type="button">Aplicar filtros</button></div>
+      <article class="card crime-map-card"><div class="crime-map-heading"><div><small>MAPA INTERACTIVO</small><h2>Mapa de detenidos</h2><p>Seleccione un departamento para ver sus provincias y luego sus distritos.</p></div><button class="secondary" data-map-back="detaineeCrimeMap" hidden>← Volver al Perú</button></div><div class="crime-map-layout"><div id="detaineeCrimeMap" class="crime-map"></div><aside class="crime-map-summary" data-map-summary="detaineeCrimeMap"><strong>Perú</strong><span>Consultando información…</span></aside></div></article>
       <div class="privacy-banner"><span>🔒</span><div><strong>Información estadística protegida</strong><p>El tablero presenta cantidades generales y no expone identidades.</p></div></div>
       <div class="dashboard-stats"><article><small>TOTAL DETENCIONES</small><strong id="detaineeDashboardTotal">—</strong><span>Registros en el periodo</span></article><article><small>PERSONAS ÚNICAS</small><strong id="detaineeDashboardPeople">—</strong><span>Sin duplicar reincidencias</span></article><article><small>FLAGRANCIA</small><strong id="detaineeDashboardFlagrancy">—</strong><span>Detenciones registradas</span></article><article><small>ESTE MES</small><strong id="detaineeDashboardMonth">—</strong><span>Según fecha de detención</span></article></div>
       <div id="detaineeDashboardStatus" class="dashboard-status visible">Consultando información…</div>
       <div class="dashboard-grid"><article class="card chart-card"><div class="chart-heading"><div><h3>Por nacionalidad</h3><p>Personas detenidas por país</p></div></div><div id="detaineeNationalityChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por situación actual</h3><p>Estado reportado del detenido</p></div></div><div id="detaineeSituationChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por delito general</h3><p>Principales clasificaciones registradas</p></div></div><div id="detaineeCrimeChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por género</h3><p>Distribución de personas registradas</p></div></div><div id="detaineeGenderChart" class="bar-chart"></div></article></div>
-      <article class="card crime-map-card"><div class="crime-map-heading"><div><small>MAPA INTERACTIVO</small><h2>Mapa de detenidos</h2><p>Seleccione un departamento para ver sus provincias y luego sus distritos.</p></div><button class="secondary" data-map-back="detaineeCrimeMap" hidden>← Volver al Perú</button></div><div class="crime-map-layout"><div id="detaineeCrimeMap" class="crime-map"></div><aside class="crime-map-summary" data-map-summary="detaineeCrimeMap"><strong>Perú</strong><span>Consultando información…</span></aside></div></article>
     </section>
 
     <section id="detaineeFormView" class="view records-view detainee-view">
