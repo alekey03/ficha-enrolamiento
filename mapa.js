@@ -30,6 +30,13 @@
     if (element) element.innerHTML=`<strong>${title(place)}</strong><span>${shown.toLocaleString('es-PE')} ${instance.label}</span><small>${located.toLocaleString('es-PE')} con ubicación reconocida en este nivel.</small>`;
     const back=document.querySelector(`[data-map-back="${id}"]`); if(back){back.hidden=instance.level==='department';back.textContent=instance.level==='district'?`← Volver a ${title(instance.department?.name)}`:'← Volver al Perú';}
   }
+  function enterZone(id, instance, layer, info) {
+    if(instance.animating)return;
+    if(instance.level==='district'){layer.openTooltip();return;}
+    instance.animating=true; layer.closeTooltip(); layer.setStyle({weight:4,color:'#075c39',fillOpacity:1});
+    instance.map.flyToBounds(layer.getBounds(),{padding:[55,55],duration:.55,maxZoom:instance.level==='department'?7:10});
+    setTimeout(()=>{if(instance.level==='department'){instance.department=info;instance.level='province';}else{instance.province=info;instance.level='district';}draw(id).finally(()=>{instance.animating=false;});},430);
+  }
   async function draw(id) {
     const instance=ensure(id); const source=await dataset(instance.level); let features=source.features||[];
     if(instance.level==='province') features=features.filter(feature=>featureInfo('province',feature).parent===instance.department.code);
@@ -40,17 +47,13 @@
     instance.layer=L.geoJSON({type:'FeatureCollection',features},{style:feature=>({color:'#b88718',weight:1.25,fillColor:color(totals[featureKey(feature,instance.level)]||0,maximum),fillOpacity:.9}),onEachFeature:(feature,layer)=>{
       const info=featureInfo(instance.level,feature); const amount=totals[featureKey(feature,instance.level)]||0;
       layer.bindTooltip(`<span>${instance.level==='department'?'Departamento':instance.level==='province'?'Provincia':'Distrito'}</span><strong>${title(info.name)}</strong><b>${amount.toLocaleString('es-PE')} ${instance.label}</b>`,{sticky:true,className:'crime-map-tooltip',opacity:1,direction:'top',offset:[0,-10]});
-      layer.on({
-        mouseover:event=>{layer.setStyle({weight:3,color:'#0f7048',fillOpacity:1});layer.bringToFront();layer.openTooltip(event.latlng);},
-        mousemove:event=>layer.getTooltip()?.setLatLng(event.latlng),
-        mouseout:()=>{instance.layer.resetStyle(layer);layer.closeTooltip();},
-        click:()=>{
-          if(instance.animating)return;
-          if(instance.level==='district'){layer.openTooltip();return;}
-          instance.animating=true; layer.setStyle({weight:4,color:'#075c39',fillOpacity:1});
-          instance.map.flyToBounds(layer.getBounds(),{padding:[55,55],duration:.65,maxZoom:instance.level==='department'?7:10});
-          setTimeout(()=>{if(instance.level==='department'){instance.department=info;instance.level='province';}else{instance.province=info;instance.level='district';}draw(id).finally(()=>{instance.animating=false;});},520);
-        }
+      layer.once('add',()=>{
+        const shape=layer.getElement(); if(!shape)return; shape.style.pointerEvents='auto'; shape.style.cursor='pointer';
+        const position=event=>instance.map.mouseEventToLatLng(event);
+        shape.addEventListener('pointerenter',event=>{layer.setStyle({weight:3,color:'#0f7048',fillOpacity:1});layer.bringToFront();layer.openTooltip(position(event));});
+        shape.addEventListener('pointermove',event=>layer.getTooltip()?.setLatLng(position(event)));
+        shape.addEventListener('pointerleave',()=>{instance.layer?.resetStyle(layer);layer.closeTooltip();});
+        shape.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();enterZone(id,instance,layer,info);});
       });
     }}).addTo(instance.map); summary(id,instance,relevant.length,Object.values(totals).reduce((sum,value)=>sum+value,0));
     if(features.length){const bounds=instance.layer.getBounds();instance.map.setMaxBounds(null);instance.map.setMaxBounds(bounds.pad(.35));setTimeout(()=>{instance.map.invalidateSize({pan:false});instance.map.fitBounds(bounds,{padding:[24,24],animate:true,duration:.55});},80);}
