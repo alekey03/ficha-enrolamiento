@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Franklin:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260910-audit-comparison" />
+  <link rel="stylesheet" href="styles.css?v=20260910-map-v1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynh17kVEKGgmoZJOZ5OlMZ13uZqk=" crossorigin="">
 </head>
 <body>
   <section class="login-screen" id="loginScreen">
@@ -86,6 +87,7 @@
         <article class="card chart-card"><div class="chart-heading"><div><h3>Por estado civil</h3><p>Situación civil registrada</p></div></div><div id="civilStatusChart" class="bar-chart"></div></article>
         <article class="card chart-card chart-wide"><div class="chart-heading"><div><h3>Evolución mensual</h3><p>Fichas registradas por mes en el periodo seleccionado</p></div></div><div id="monthlyChart" class="monthly-chart"></div></article>
       </div>
+      <article class="card crime-map-card"><div class="crime-map-heading"><div><small>MAPA INTERACTIVO</small><h2>Mapa de víctimas</h2><p>Seleccione un departamento para ver sus provincias y luego sus distritos.</p></div><button class="secondary" data-map-back="victimCrimeMap" hidden>← Volver al Perú</button></div><div class="crime-map-layout"><div id="victimCrimeMap" class="crime-map"></div><aside class="crime-map-summary" data-map-summary="victimCrimeMap"><strong>Perú</strong><span>Consultando información…</span></aside></div></article>
     </section>
 
     <div id="formView" class="view">
@@ -193,6 +195,7 @@
       <div class="dashboard-stats"><article><small>TOTAL DETENCIONES</small><strong id="detaineeDashboardTotal">—</strong><span>Registros en el periodo</span></article><article><small>PERSONAS ÚNICAS</small><strong id="detaineeDashboardPeople">—</strong><span>Sin duplicar reincidencias</span></article><article><small>FLAGRANCIA</small><strong id="detaineeDashboardFlagrancy">—</strong><span>Detenciones registradas</span></article><article><small>ESTE MES</small><strong id="detaineeDashboardMonth">—</strong><span>Según fecha de detención</span></article></div>
       <div id="detaineeDashboardStatus" class="dashboard-status visible">Consultando información…</div>
       <div class="dashboard-grid"><article class="card chart-card"><div class="chart-heading"><div><h3>Por nacionalidad</h3><p>Personas detenidas por país</p></div></div><div id="detaineeNationalityChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por situación actual</h3><p>Estado reportado del detenido</p></div></div><div id="detaineeSituationChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por delito general</h3><p>Principales clasificaciones registradas</p></div></div><div id="detaineeCrimeChart" class="bar-chart"></div></article><article class="card chart-card"><div class="chart-heading"><div><h3>Por género</h3><p>Distribución de personas registradas</p></div></div><div id="detaineeGenderChart" class="bar-chart"></div></article></div>
+      <article class="card crime-map-card"><div class="crime-map-heading"><div><small>MAPA INTERACTIVO</small><h2>Mapa de detenidos</h2><p>Seleccione un departamento para ver sus provincias y luego sus distritos.</p></div><button class="secondary" data-map-back="detaineeCrimeMap" hidden>← Volver al Perú</button></div><div class="crime-map-layout"><div id="detaineeCrimeMap" class="crime-map"></div><aside class="crime-map-summary" data-map-summary="detaineeCrimeMap"><strong>Perú</strong><span>Consultando información…</span></aside></div></article>
     </section>
 
     <section id="detaineeFormView" class="view records-view detainee-view">
@@ -302,11 +305,13 @@
   <div class="toast" id="toast">✓ Ficha registrada correctamente</div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="catalogos.js?v=20260910-secure-catalogs"></script>
   <script src="catalogos-ui.js?v=20260910-detainee-edit"></script>
-  <script src="app.js?v=20260910-audit-comparison"></script>
+  <script src="mapa.js?v=20260910-map-v1"></script>
+  <script src="app.js?v=20260910-map-v1"></script>
   <script src="auditoria.js?v=20260910-audit-comparison"></script>
-  <script src="detenidos.js?v=20260910-detainee-edit"></script>
+  <script src="detenidos.js?v=20260910-map-v1"></script>
   <script src="exportaciones.js?v=20260908-2"></script>
 </body>
 </html>

@@ -234,7 +234,7 @@ async function deleteDetainee() {
 window.loadDetaineeDashboard = async function loadDetaineeDashboard() {
   const status = document.getElementById('detaineeDashboardStatus');
   status.textContent = 'Consultando información…'; status.classList.add('visible');
-  let query = supabaseClient.from('detenciones').select('id,persona_id,fecha,motivo_detencion,situacion_actual,personas(nacionalidad,genero),detencion_delitos(delito_general)');
+  let query = supabaseClient.from('detenciones').select('id,persona_id,fecha,motivo_detencion,situacion_actual,personas(nacionalidad,genero,departamento,provincia,distrito),detencion_delitos(delito_general)');
   const from = document.getElementById('detaineeDashboardFrom').value;
   const to = document.getElementById('detaineeDashboardTo').value;
   if (from) query = query.gte('fecha', from);
@@ -254,6 +254,7 @@ window.loadDetaineeDashboard = async function loadDetaineeDashboard() {
   renderCounts('detaineeSituationChart', count(item => item.situacion_actual));
   renderCounts('detaineeGenderChart', count(item => item.personas?.genero));
   renderCounts('detaineeCrimeChart', count(item => item.detencion_delitos?.length ? item.detencion_delitos.map(crime => crime.delito_general) : [null]));
+  window.renderCrimeMap?.('detaineeCrimeMap', records.map(item => ({ department:item.personas?.departamento, province:item.personas?.provincia, district:item.personas?.distrito })), 'detenciones');
   status.textContent = `${records.length.toLocaleString('es-PE')} detención${records.length === 1 ? '' : 'es'} en el periodo seleccionado.`;
 };
 

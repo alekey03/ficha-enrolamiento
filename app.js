@@ -613,6 +613,10 @@ function renderDashboard() {
   renderBarChart('educationChart', countBy(records, record => dashboardCategory(record.grado_instruccion)));
   renderBarChart('civilStatusChart', countBy(records, record => dashboardCategory(record.estado_civil)));
   renderMonthlyChart(records);
+  window.renderCrimeMap?.('victimCrimeMap', records.map(record => {
+    const [department = '', province = '', district = ''] = String(record.lugar_intervencion || '').split('/').map(value => value.trim());
+    return { department, province, district };
+  }), 'víctimas');
   dashboardStatus.textContent = `${total.toLocaleString('es-PE')} ficha${total === 1 ? '' : 's'} en el periodo seleccionado.`;
   dashboardStatus.classList.toggle('visible', Boolean(document.getElementById('dashboardPeriod').value !== 'all' || document.getElementById('dashboardNationality').value));
 }
@@ -627,7 +631,7 @@ async function loadDashboard() {
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await supabaseClient
       .from('fichas')
-      .select('nacionalidad, edad_registro, fecha_nacimiento, grado_instruccion, estado_civil, creado_en, fecha_intervencion, unidad')
+      .select('nacionalidad, edad_registro, fecha_nacimiento, grado_instruccion, estado_civil, creado_en, fecha_intervencion, lugar_intervencion, unidad')
       .range(from, from + pageSize - 1);
     if (error) {
       console.error(error);
