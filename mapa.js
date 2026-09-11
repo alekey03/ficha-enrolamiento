@@ -22,8 +22,8 @@
   function counts(records, level) { return records.reduce((result, record) => { const key=recordKey(record,level); if (key && !key.startsWith('|')) result[key]=(result[key]||0)+1; return result; },{}); }
   function ensure(id) {
     if (instances.has(id)) return instances.get(id);
-    const map=L.map(id,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:12,zoomSnap:.25,preferCanvas:true}).setView([-9.2,-75.1],5);
-    const instance={map,layer:null,records:[],level:'department',department:null,province:null,label:'casos'}; instances.set(id,instance); return instance;
+    const map=L.map(id,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:12,zoomSnap:.25}).setView([-9.2,-75.1],5);
+    const instance={map,layer:null,records:[],level:'department',department:null,province:null,label:'casos',animating:false}; instances.set(id,instance); return instance;
   }
   function summary(id, instance, shown, located) {
     const element=document.querySelector(`[data-map-summary="${id}"]`); const place=instance.province?.name||instance.department?.name||'Perú';
@@ -38,10 +38,22 @@
     const totals=counts(relevant,instance.level); const maximum=Math.max(0,...Object.values(totals)); if(instance.layer) instance.layer.remove();
     instance.map.invalidateSize({pan:false});
     instance.layer=L.geoJSON({type:'FeatureCollection',features},{style:feature=>({color:'#b88718',weight:1.25,fillColor:color(totals[featureKey(feature,instance.level)]||0,maximum),fillOpacity:.9}),onEachFeature:(feature,layer)=>{
-      const info=featureInfo(instance.level,feature); const amount=totals[featureKey(feature,instance.level)]||0; layer.bindTooltip(`<strong>${title(info.name)}</strong><br>${amount} ${instance.label}`,{sticky:true});
-      layer.on({mouseover:()=>layer.setStyle({weight:2.5,color:'#155c3d'}),mouseout:()=>instance.layer.resetStyle(layer),click:()=>{if(instance.level==='department'){instance.department=info;instance.level='province';draw(id);}else if(instance.level==='province'){instance.province=info;instance.level='district';draw(id);}else layer.openTooltip();}});
+      const info=featureInfo(instance.level,feature); const amount=totals[featureKey(feature,instance.level)]||0;
+      layer.bindTooltip(`<span>${instance.level==='department'?'Departamento':instance.level==='province'?'Provincia':'Distrito'}</span><strong>${title(info.name)}</strong><b>${amount.toLocaleString('es-PE')} ${instance.label}</b>`,{sticky:true,className:'crime-map-tooltip',opacity:1,direction:'top',offset:[0,-10]});
+      layer.on({
+        mouseover:event=>{layer.setStyle({weight:3,color:'#0f7048',fillOpacity:1});layer.bringToFront();layer.openTooltip(event.latlng);},
+        mousemove:event=>layer.getTooltip()?.setLatLng(event.latlng),
+        mouseout:()=>{instance.layer.resetStyle(layer);layer.closeTooltip();},
+        click:()=>{
+          if(instance.animating)return;
+          if(instance.level==='district'){layer.openTooltip();return;}
+          instance.animating=true; layer.setStyle({weight:4,color:'#075c39',fillOpacity:1});
+          instance.map.flyToBounds(layer.getBounds(),{padding:[55,55],duration:.65,maxZoom:instance.level==='department'?7:10});
+          setTimeout(()=>{if(instance.level==='department'){instance.department=info;instance.level='province';}else{instance.province=info;instance.level='district';}draw(id).finally(()=>{instance.animating=false;});},520);
+        }
+      });
     }}).addTo(instance.map); summary(id,instance,relevant.length,Object.values(totals).reduce((sum,value)=>sum+value,0));
-    if(features.length){const bounds=instance.layer.getBounds();instance.map.setMaxBounds(null);instance.map.setMaxBounds(bounds.pad(.35));setTimeout(()=>{instance.map.invalidateSize({pan:false});instance.map.fitBounds(bounds,{padding:[24,24],animate:false});},80);}
+    if(features.length){const bounds=instance.layer.getBounds();instance.map.setMaxBounds(null);instance.map.setMaxBounds(bounds.pad(.35));setTimeout(()=>{instance.map.invalidateSize({pan:false});instance.map.fitBounds(bounds,{padding:[24,24],animate:true,duration:.55});},80);}
   }
   window.renderCrimeMap=async(id,records,label='casos')=>{if(!window.L||!document.getElementById(id))return;const instance=ensure(id);instance.records=records||[];instance.label=label;try{await draw(id);}catch(error){console.error(error);document.getElementById(id).innerHTML='<div class="map-error">No se pudo cargar el mapa.</div>';}};
   document.addEventListener('click',event=>{const button=event.target.closest('[data-map-back]');if(!button)return;const instance=instances.get(button.dataset.mapBack);if(!instance)return;if(instance.level==='district'){instance.level='province';instance.province=null;}else{instance.level='department';instance.department=null;}draw(button.dataset.mapBack);});
