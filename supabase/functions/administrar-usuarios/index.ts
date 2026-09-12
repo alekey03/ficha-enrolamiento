@@ -37,8 +37,13 @@ export default {
       const roles = ['administrador', 'supervisor', 'operador'];
       if (!roles.includes(body.rol)) throw new Error('Rol no válido.');
       if (!body.nombres?.trim() || !body.apellidos?.trim() || !body.unidad?.trim()) throw new Error('Complete los datos obligatorios.');
+      const scopes = ['NACIONAL', 'SEDE_CENTRAL', 'DESCONCENTRADO'];
+      const ambito = body.rol === 'administrador' ? 'NACIONAL' : String(body.ambito || '').trim().toUpperCase();
+      if (!scopes.includes(ambito)) throw new Error('Ámbito no válido.');
       const departamento = body.rol === 'administrador' ? 'NACIONAL' : String(body.departamento || '').trim().toUpperCase();
       if (!departamento) throw new Error('Seleccione el departamento del usuario.');
+      if (ambito === 'SEDE_CENTRAL' && departamento !== 'LIMA') throw new Error('La Sede Central debe pertenecer a Lima.');
+      const unidad = body.rol === 'administrador' ? 'ADMINISTRACIÓN GENERAL DIRITPTIM' : body.unidad.trim().toUpperCase();
 
       if (body.accion === 'crear') {
         const usuario = String(body.usuario || '').trim().toLowerCase();
@@ -50,7 +55,7 @@ export default {
         if (authError) throw authError;
         const { error: profileError } = await ctx.supabaseAdmin.from('perfiles').insert({
           id: created.user.id, usuario, nombres: body.nombres.trim(), apellidos: body.apellidos.trim(),
-          unidad: body.unidad.trim().toUpperCase(), departamento, rol: body.rol, activo: true
+          unidad, departamento, ambito, rol: body.rol, activo: true
         });
         if (profileError) {
           await ctx.supabaseAdmin.auth.admin.deleteUser(created.user.id);
@@ -60,7 +65,7 @@ export default {
         if (!body.id) throw new Error('Usuario no identificado.');
         if (body.id === userId && (body.rol !== 'administrador' || body.activo === false)) throw new Error('No puede quitarse su propio acceso de administrador.');
         const { error: profileError } = await ctx.supabaseAdmin.from('perfiles').update({
-          nombres: body.nombres.trim(), apellidos: body.apellidos.trim(), unidad: body.unidad.trim().toUpperCase(), departamento,
+          nombres: body.nombres.trim(), apellidos: body.apellidos.trim(), unidad, departamento, ambito,
           rol: body.rol, activo: Boolean(body.activo)
         }).eq('id', body.id);
         if (profileError) throw profileError;
