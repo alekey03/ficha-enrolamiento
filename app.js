@@ -486,7 +486,7 @@ async function loadCurrentProfile(userId) {
   document.getElementById('institutionName').textContent = 'DIRITPTIM';
   document.getElementById('institutionScope').textContent = assignedScope;
   document.querySelector('.user strong').textContent = `${data.nombres} ${data.apellidos}`;
-  document.getElementById('userScope').textContent = 'Cerrar sesión';
+  document.getElementById('userScope').textContent = isAdministrator ? 'Administrador general' : assignedScope;
   document.querySelector('.avatar').textContent = data.nombres.slice(0, 1).toUpperCase() + data.apellidos.slice(0, 1).toUpperCase();
   document.title = `${assignedScope} | DIRITPTIM`;
   return true;

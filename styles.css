@@ -234,4 +234,4 @@ body.sidebar-collapsed .nav-item span{width:auto;font-size:17px}
 .crime-map .leaflet-interactive{transition:fill-opacity .18s ease,stroke .18s ease,stroke-width .18s ease;cursor:pointer;pointer-events:auto!important}.crime-map-hover{position:absolute;z-index:1000;width:190px;border-radius:9px;padding:10px 13px;background:#102a20;color:#fff;box-shadow:0 8px 24px rgba(16,42,32,.28);pointer-events:none;opacity:0;transform:translateY(7px);transition:opacity .14s ease,transform .14s ease}.crime-map-hover.visible{opacity:1;transform:none}.crime-map-hover span{display:block;color:#a9d8bf;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.crime-map-hover strong{display:block;font-size:13px;margin:2px 0 5px}.crime-map-hover b{display:block;color:#ffd66b;font-size:12px}
 
 /* Identidad institucional según la dependencia del usuario. */
-.brand strong{font-size:18px}.brand small{font-size:12px;margin-top:4px}.user span strong{font-size:12px}
+.brand strong{font-size:18px}.brand small{font-size:12px;margin-top:4px}.user span strong{font-size:12px}.user span small{font-size:10px;margin-top:3px}
