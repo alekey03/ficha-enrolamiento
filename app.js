@@ -480,17 +480,15 @@ async function loadCurrentProfile(userId) {
     element.classList.toggle('visible', data.rol === 'administrador');
   });
   const isAdministrator = data.rol === 'administrador';
-  const assignedInstitution = isAdministrator
-    ? 'Administrador general'
+  const assignedScope = isAdministrator
+    ? 'Ámbito nacional'
     : (data.unidad || 'Dependencia no asignada');
-  document.getElementById('institutionName').textContent = assignedInstitution;
-  document.getElementById('institutionScope').textContent = isAdministrator
-    ? 'DIRITPTIM · Ámbito nacional'
-    : 'DIRITPTIM · Unidad asignada';
+  document.getElementById('institutionName').textContent = 'DIRITPTIM';
+  document.getElementById('institutionScope').textContent = assignedScope;
   document.querySelector('.user strong').textContent = `${data.nombres} ${data.apellidos}`;
-  document.getElementById('userScope').textContent = `${assignedInstitution} · Cerrar sesión`;
+  document.getElementById('userScope').textContent = 'Cerrar sesión';
   document.querySelector('.avatar').textContent = data.nombres.slice(0, 1).toUpperCase() + data.apellidos.slice(0, 1).toUpperCase();
-  document.title = `${assignedInstitution} | DIRITPTIM`;
+  document.title = `${assignedScope} | DIRITPTIM`;
   return true;
 }
 
