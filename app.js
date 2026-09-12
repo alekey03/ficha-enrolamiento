@@ -120,7 +120,7 @@ async function loadRecords() {
 
   let query = supabaseClient
     .from('fichas')
-    .select('id, codigo, apellido_paterno, apellido_materno, nombres, tipo_documento, numero_documento, fecha_nacimiento, edad_registro, nacionalidad, fecha_intervencion, creado_en, unidad')
+    .select('id, codigo, apellido_paterno, apellido_materno, nombres, tipo_documento, numero_documento, fecha_nacimiento, edad_registro, nacionalidad, fecha_intervencion, creado_en, departamento_registro, unidad')
     .order('creado_en', { ascending: false })
     .limit(100);
 
@@ -166,13 +166,14 @@ async function loadRecords() {
       <td><span class="record-name">${escapeHtml(`${record.apellido_paterno} ${record.apellido_materno}, ${record.nombres}`)}</span></td>
       <td>${escapeHtml(record.tipo_documento || '—')} ${escapeHtml(record.numero_documento || '')}</td>
       <td>${escapeHtml(formatDate(record.fecha_intervencion))}</td>
+      <td>${escapeHtml(record.departamento_registro || '—')}</td>
       <td>${escapeHtml(record.unidad)}</td>
       <td><button class="table-action view-record" data-record-id="${escapeHtml(record.id)}" type="button">Ver ficha</button></td>
     </tr>`).join('');
 
   result.innerHTML = `
     <div class="records-count"><strong>${filtered.length} registro${filtered.length === 1 ? '' : 's'}</strong><span>Máximo 100 resultados</span></div>
-    <div class="table-wrap"><table><thead><tr><th>Código</th><th>Persona</th><th>Documento</th><th>Intervención</th><th>Unidad</th><th>Acciones</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="table-wrap"><table><thead><tr><th>Código</th><th>Persona</th><th>Documento</th><th>Intervención</th><th>Departamento registrador</th><th>Área registradora</th><th>Acciones</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 
   result.querySelectorAll('.view-record').forEach(button => {
     button.addEventListener('click', () => openRecord(button.dataset.recordId));
@@ -287,7 +288,8 @@ async function openRecord(recordId) {
     ${detailField('Motivo', record.motivo_intervencion)}
     ${detailField('Lugar', record.lugar_intervencion)}
     ${detailField('Fecha', formatDate(record.fecha_intervencion))}
-    ${detailField('Unidad', record.unidad)}
+    ${detailField('Departamento registrador', record.departamento_registro)}
+    ${detailField('Área registradora', record.unidad)}
     ${detailField('Grado del responsable', record.responsable_grado)}
     ${detailField('Responsable', `${record.responsable_apellidos || ''} ${record.responsable_nombres || ''}`)}
   `;
@@ -487,6 +489,8 @@ async function loadCurrentProfile(userId) {
   document.getElementById('institutionScope').textContent = assignedScope;
   document.querySelector('.user strong').textContent = `${data.nombres} ${data.apellidos}`;
   document.getElementById('userScope').textContent = isAdministrator ? 'Administrador general' : assignedScope;
+  document.querySelectorAll('.profile-registration-department').forEach(input => { input.value = data.departamento || 'SIN ASIGNAR'; });
+  document.querySelectorAll('.profile-registration-area').forEach(input => { input.value = data.unidad || 'SIN ASIGNAR'; });
   document.querySelector('.avatar').textContent = data.nombres.slice(0, 1).toUpperCase() + data.apellidos.slice(0, 1).toUpperCase();
   document.title = `${assignedScope} | DIRITPTIM`;
   return true;
@@ -1242,6 +1246,10 @@ form.addEventListener('submit', async event => {
     loginScreen.classList.remove('hidden');
     return;
   }
+  if (!currentProfile.departamento) {
+    alert('Su cuenta todavía no tiene un departamento asignado. Solicite al administrador que complete su perfil.');
+    return;
+  }
 
   const values = Object.fromEntries(new FormData(form).entries());
   const signature = duplicateSignature(values);
@@ -1293,6 +1301,7 @@ form.addEventListener('submit', async event => {
     motivo_intervencion: emptyToNull(values.motivo),
     lugar_intervencion: emptyToNull(window.getVictimLocation?.() || ''),
     fecha_intervencion: emptyToNull(values.fechaIntervencion),
+    departamento_registro: currentProfile.departamento,
     unidad: currentProfile.unidad,
     responsable_grado: emptyToNull(values.grado),
     responsable_apellidos: emptyToNull(values.responsableApellidos),
@@ -1306,6 +1315,7 @@ form.addEventListener('submit', async event => {
     delete editableRecord.codigo;
     delete editableRecord.creado_por;
     delete editableRecord.unidad;
+    delete editableRecord.departamento_registro;
     saveResult = await supabaseClient.from('fichas').update(editableRecord).eq('id', editingRecordId).select('id, codigo').single();
   } else {
     saveResult = await supabaseClient.from('fichas').insert(record).select('id, codigo').single();

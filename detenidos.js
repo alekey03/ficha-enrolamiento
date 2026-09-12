@@ -95,6 +95,7 @@ async function saveDetainee(event) {
   const button = document.getElementById('saveDetaineeButton');
   if (!detaineeForm.reportValidity()) return;
   if (!currentProfile) { status.textContent = 'La sesión no está disponible.'; return; }
+  if (!currentProfile.departamento) { status.textContent = 'Su cuenta no tiene un departamento asignado. Complete el perfil antes de registrar.'; return; }
   button.disabled = true; button.textContent = 'Guardando…'; status.className = '';
   let personResult;
   let detentionId;
@@ -109,7 +110,7 @@ async function saveDetainee(event) {
       direccion_policial: nullable(detaineeValue('direccionPolicial')), direccion_especializada_region: nullable(detaineeValue('direccionRegion')), division_policial: nullable(detaineeValue('divisionPolicial')), departamento_policial: nullable(detaineeValue('departamentoPolicial')), unidad_area_equipo: nullable(detaineeValue('unidadArea')),
       integra_organizacion: belongsToOrganization, rol_organizacion: nullable(organizationRole), nombre_organizacion: nullable(organizationName), situacion_actual: nullable(detaineeValue('situacionActual')), documento_libertad: nullable(detaineeValue('documentoLibertad')), documento_disposicion: nullable(detaineeValue('documentoDisposicion')),
       fiscal_nombre: nullable(detaineeValue('fiscalNombre')), fiscalia: nullable(detaineeValue('fiscalia')), disposicion_direccion: nullable(detaineeValue('disposicionDireccion')), disposicion_region: nullable(detaineeValue('disposicionRegion')), disposicion_division: nullable(detaineeValue('disposicionDivision')), disposicion_departamento: nullable(detaineeValue('disposicionDepartamento')), disposicion_unidad: nullable(detaineeValue('disposicionUnidad')), nota_sicpip: nullable(detaineeValue('notaSicpip')),
-      unidad: currentProfile.unidad, creado_por: currentProfile.id
+      departamento_registro: currentProfile.departamento, unidad: currentProfile.unidad, creado_por: currentProfile.id
     };
     if (editingDetaineeId) {
       const person = {
@@ -117,7 +118,7 @@ async function saveDetainee(event) {
         edad: nullable(detaineeValue('edad')) ? Number(detaineeValue('edad')) : null, genero: nullable(detaineeValue('genero')), nacionalidad: nullable(detaineeValue('nacionalidad')),
         tipo_documento: nullable(detaineeValue('tipoDocumento')), numero_documento: nullable(detaineeValue('numeroDocumento')), departamento: nullable(detaineeValue('departamento')), provincia: nullable(detaineeValue('provincia')), distrito: nullable(detaineeValue('distrito'))
       };
-      delete detention.persona_id; delete detention.unidad; delete detention.creado_por;
+      delete detention.persona_id; delete detention.departamento_registro; delete detention.unidad; delete detention.creado_por;
       if (!samePayload(selectedDetainee.personas, person)) {
         const { error: personError } = await supabaseClient.from('personas').update(person).eq('id', personResult.id);
         if (personError) throw personError;
@@ -202,6 +203,7 @@ async function openDetaineeRecord(id) {
   const crimes = (data.detencion_delitos || []).sort((a,b) => a.orden-b.orden).map((crime,index) => detailField(`Delito ${index+1}`, [crime.es_tentativa?'Tentativa':null,crime.fuero_ley_especial,crime.delito_general,crime.delito_especifico,crime.subtipo].filter(Boolean).join(' · '))).join('');
   const weapons = (data.detencion_armas || []).map(weapon => detailField('Arma o hallazgo', [weapon.categoria,weapon.tipo,`Cantidad: ${weapon.cantidad||1}`,weapon.observacion].filter(Boolean).join(' · '))).join('');
   document.getElementById('detaineeRecordDetail').innerHTML = `<div class="detail-section">Identificación</div>${detailField('Apellidos y nombres',`${p.apellido_paterno||''} ${p.apellido_materno||''}, ${p.nombres||''}`)}${detailField('Documento',[p.tipo_documento,p.numero_documento].filter(Boolean).join(' '))}${detailField('Edad / género',[p.edad,p.genero].filter(Boolean).join(' · '))}${detailField('Nacionalidad',p.nacionalidad)}${detailField('Ubicación',[p.departamento,p.provincia,p.distrito].filter(Boolean).join(' / '))}<div class="detail-section">Detención</div>${detailField('Fecha y hora',[formatDate(data.fecha),data.hora].filter(Boolean).join(' · '))}${detailField('Motivo',data.motivo_detencion)}${detailField('Situación actual',data.situacion_actual)}${detailField('Funcionario público',data.es_funcionario_publico?'Sí':'No')}${detailField('Entidad pública',[data.entidad_publica,data.detalle_entidad_publica].filter(Boolean).join(' · '))}<div class="detail-section">Delitos atribuidos</div>${crimes||detailField('Delitos','No registrados')}<div class="detail-section">Unidad, organización y hallazgos</div>${detailField('Dependencia',[data.direccion_policial,data.direccion_especializada_region,data.division_policial,data.departamento_policial,data.unidad_area_equipo].filter(Boolean).join(' / '))}${detailField('Banda u organización',data.integra_organizacion?[data.rol_organizacion,data.nombre_organizacion].filter(Boolean).join(' · '):'No')}${weapons||detailField('Armas o hallazgos','Ninguno')}<div class="detail-section">Puesta a disposición</div>${detailField('Documentos',[data.documento_libertad,data.documento_disposicion].filter(Boolean).join(' · '))}${detailField('Fiscal / Fiscalía',[data.fiscal_nombre,data.fiscalia].filter(Boolean).join(' · '))}${detailField('Dependencia receptora',[data.disposicion_direccion,data.disposicion_region,data.disposicion_division,data.disposicion_departamento,data.disposicion_unidad].filter(Boolean).join(' / '))}${detailField('Nota SICPIP',data.nota_sicpip)}`;
+  document.getElementById('detaineeRecordDetail').insertAdjacentHTML('afterbegin', `<div class="detail-section">Registro institucional</div>${detailField('Departamento registrador',data.departamento_registro)}${detailField('Área registradora',data.unidad)}`);
   document.getElementById('editDetaineeButton').classList.toggle('hidden-control', !isDetaineeAdmin());
   document.getElementById('deleteDetaineeButton').classList.toggle('hidden-control', !isDetaineeAdmin());
 }
