@@ -479,9 +479,18 @@ async function loadCurrentProfile(userId) {
   document.querySelectorAll('.admin-only').forEach(element => {
     element.classList.toggle('visible', data.rol === 'administrador');
   });
+  const isAdministrator = data.rol === 'administrador';
+  const assignedInstitution = isAdministrator
+    ? 'Administrador general'
+    : (data.unidad || 'Dependencia no asignada');
+  document.getElementById('institutionName').textContent = assignedInstitution;
+  document.getElementById('institutionScope').textContent = isAdministrator
+    ? 'DIRITPTIM · Ámbito nacional'
+    : 'DIRITPTIM · Unidad asignada';
   document.querySelector('.user strong').textContent = `${data.nombres} ${data.apellidos}`;
-  document.querySelector('.user small').textContent = `${data.rol === 'administrador' ? 'admin' : data.rol} · Cerrar sesión`;
+  document.getElementById('userScope').textContent = `${assignedInstitution} · Cerrar sesión`;
   document.querySelector('.avatar').textContent = data.nombres.slice(0, 1).toUpperCase() + data.apellidos.slice(0, 1).toUpperCase();
+  document.title = `${assignedInstitution} | DIRITPTIM`;
   return true;
 }
 
