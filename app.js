@@ -457,7 +457,7 @@ async function loadCurrentProfile(userId) {
   profileLoadFailure = '';
   const { data, error } = await supabaseClient
     .from('perfiles')
-    .select('id, usuario, nombres, apellidos, unidad, rol, activo')
+    .select('id, usuario, nombres, apellidos, unidad, departamento, rol, activo')
     .eq('id', userId)
     .single();
 
@@ -759,6 +759,23 @@ const userModal = document.getElementById('userModal');
 const userForm = document.getElementById('userForm');
 let editingUserId = null;
 
+function configureUserTerritory(role, department = '') {
+  const departmentSelect = document.getElementById('newUserDepartment');
+  const isAdministrator = role === 'administrador';
+  departmentSelect.disabled = isAdministrator;
+  departmentSelect.required = !isAdministrator;
+  departmentSelect.value = isAdministrator ? 'NACIONAL' : department;
+}
+
+function initializeUserDepartments() {
+  const departmentSelect = document.getElementById('newUserDepartment');
+  const departments = (window.CATALOGO_UBIGEO || []).map(item => item.value.replaceAll('_', ' '));
+  departmentSelect.insertAdjacentHTML('beforeend', `<option value="NACIONAL">Ámbito nacional</option>${departments.map(department => `<option value="${escapeHtml(department)}">${escapeHtml(department)}</option>`).join('')}`);
+}
+
+initializeUserDepartments();
+document.getElementById('newUserRole').addEventListener('change', event => configureUserTerritory(event.target.value));
+
 function openUserForm(profile = null) {
   editingUserId = profile?.id || null;
   userForm.reset();
@@ -768,6 +785,7 @@ function openUserForm(profile = null) {
   document.getElementById('newUsername').disabled = Boolean(profile);
   document.getElementById('newUserPassword').required = !profile;
   document.getElementById('newUserPassword').placeholder = profile ? 'Dejar vacío para conservarla' : '';
+  configureUserTerritory(profile?.rol || document.getElementById('newUserRole').value, profile?.departamento || '');
   document.getElementById('userFormMessage').className = 'modal-help';
   document.getElementById('userFormMessage').textContent = profile
     ? 'Puede cambiar los permisos, el estado y, opcionalmente, la contraseña.'
@@ -777,6 +795,7 @@ function openUserForm(profile = null) {
     document.getElementById('newUserSurnames').value = profile.apellidos;
     document.getElementById('newUsername').value = profile.usuario;
     document.getElementById('newUserRole').value = profile.rol;
+    configureUserTerritory(profile.rol, profile.departamento || '');
     document.getElementById('newUserUnit').value = profile.unidad;
     document.getElementById('newUserActive').value = String(profile.activo);
   }
@@ -798,7 +817,7 @@ async function loadUsers() {
   }
 
   const search = document.getElementById('userSearch').value.trim().toLocaleLowerCase('es');
-  const users = search ? data.filter(profile => [profile.usuario, profile.nombres, profile.apellidos, profile.unidad, profile.rol]
+  const users = search ? data.filter(profile => [profile.usuario, profile.nombres, profile.apellidos, profile.departamento, profile.unidad, profile.rol]
     .some(value => String(value || '').toLocaleLowerCase('es').includes(search))) : data;
   document.getElementById('activeUsersCount').textContent = data.filter(profile => profile.activo).length;
   document.getElementById('adminUsersCount').textContent = data.filter(profile => profile.rol === 'administrador').length;
@@ -807,12 +826,13 @@ async function loadUsers() {
   const rows = users.map(profile => `<tr>
     <td><strong>${escapeHtml(`${profile.nombres} ${profile.apellidos}`)}</strong><small>Usuario: ${escapeHtml(profile.usuario === 'administrador' ? 'amejia' : profile.usuario)}</small></td>
     <td><span class="role ${profile.rol === 'administrador' ? 'admin' : ''}">${escapeHtml(profile.rol === 'administrador' ? 'admin' : profile.rol)}</span></td>
+    <td>${escapeHtml(profile.departamento || (profile.rol === 'administrador' ? 'NACIONAL' : '—'))}</td>
     <td>${escapeHtml(profile.unidad)}</td>
     <td><span class="state ${profile.activo ? '' : 'inactive'}">● ${profile.activo ? 'Activo' : 'Desactivado'}</span></td>
     <td><div class="user-actions"><button class="table-action edit-user" data-user-id="${escapeHtml(profile.id)}" type="button">Editar</button><button class="table-action password-user" data-user-id="${escapeHtml(profile.id)}" type="button">Contraseña</button><button class="table-action toggle-user" data-user-id="${escapeHtml(profile.id)}" type="button">${profile.activo ? 'Desactivar' : 'Activar'}</button><button class="table-action delete-user" data-user-id="${escapeHtml(profile.id)}" type="button" ${profile.id === currentProfile.id ? 'disabled title="No puede eliminar su propia cuenta"' : ''}>Eliminar</button></div></td>
   </tr>`).join('');
   result.innerHTML = users.length
-    ? `<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Rol</th><th>Unidad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    ? `<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Rol</th><th>Departamento</th><th>Área o dependencia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${rows}</tbody></table></div>`
     : '<div class="empty-state"><span>⌕</span><h3>No se encontraron usuarios</h3></div>';
   result.querySelectorAll('.edit-user').forEach(button => button.addEventListener('click', () => {
     openUserForm(data.find(profile => profile.id === button.dataset.userId));
@@ -826,7 +846,7 @@ async function loadUsers() {
     const profile = data.find(item => item.id === button.dataset.userId);
     if (!profile || (profile.id === currentProfile.id && profile.activo)) return alert('No puede desactivar su propia cuenta.');
     if (!confirm(`¿Desea ${profile.activo ? 'desactivar' : 'activar'} el acceso de ${profile.nombres} ${profile.apellidos}?`)) return;
-    await runUserAction({ accion: 'actualizar', id: profile.id, usuario: profile.usuario, nombres: profile.nombres, apellidos: profile.apellidos, unidad: profile.unidad, rol: profile.rol, activo: !profile.activo, contrasena: '' });
+    await runUserAction({ accion: 'actualizar', id: profile.id, usuario: profile.usuario, nombres: profile.nombres, apellidos: profile.apellidos, departamento: profile.departamento || (profile.rol === 'administrador' ? 'NACIONAL' : ''), unidad: profile.unidad, rol: profile.rol, activo: !profile.activo, contrasena: '' });
   }));
   result.querySelectorAll('.delete-user').forEach(button => button.addEventListener('click', async () => {
     const profile = data.find(item => item.id === button.dataset.userId);
@@ -867,6 +887,7 @@ userForm.addEventListener('submit', async event => {
     usuario: document.getElementById('newUsername').value.trim().toLowerCase(),
     nombres: document.getElementById('newUserNames').value.trim(),
     apellidos: document.getElementById('newUserSurnames').value.trim(),
+    departamento: document.getElementById('newUserRole').value === 'administrador' ? 'NACIONAL' : document.getElementById('newUserDepartment').value,
     unidad: document.getElementById('newUserUnit').value.trim().toUpperCase(),
     rol: document.getElementById('newUserRole').value,
     activo: document.getElementById('newUserActive').value === 'true',
@@ -889,6 +910,24 @@ userForm.addEventListener('submit', async event => {
     }
     message.className = 'modal-help error';
     message.textContent = serverMessage || 'Supabase rechazó la solicitud. Revise los registros de la función.';
+    return;
+  }
+  let profileId = editingUserId;
+  if (!profileId) {
+    const { data: createdProfile, error: profileLookupError } = await supabaseClient
+      .from('perfiles').select('id').eq('usuario', payload.usuario).single();
+    if (profileLookupError) {
+      message.className = 'modal-help error';
+      message.textContent = 'El usuario fue creado, pero no se pudo asignar su departamento.';
+      return;
+    }
+    profileId = createdProfile.id;
+  }
+  const { error: departmentError } = await supabaseClient
+    .from('perfiles').update({ departamento: payload.departamento }).eq('id', profileId);
+  if (departmentError) {
+    message.className = 'modal-help error';
+    message.textContent = 'El usuario se guardó, pero Supabase rechazó la asignación del departamento.';
     return;
   }
   message.className = 'modal-help success';

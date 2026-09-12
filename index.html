@@ -270,8 +270,9 @@
         <label>Nombres<input id="newUserNames" placeholder="Nombres del usuario" required></label>
         <label>Apellidos<input id="newUserSurnames" placeholder="Apellidos del usuario" required></label>
         <label class="span-2">Nombre de usuario<input id="newUsername" type="text" placeholder="Ej. operador03" pattern="[a-z0-9._-]{3,30}" autocomplete="off" required></label>
-        <label>Rol<select id="newUserRole" required><option value="operador">Operador</option><option value="supervisor">Supervisor</option><option value="administrador">Admin</option></select></label>
-        <label>Unidad<input id="newUserUnit" placeholder="Unidad asignada" value="MEJIA" required></label>
+        <label>Rol<select id="newUserRole" required><option value="operador">Operador</option><option value="supervisor">Supervisor</option><option value="administrador">Administrador general</option></select></label>
+        <label>Departamento<select id="newUserDepartment" required><option value="">Seleccionar departamento</option></select></label>
+        <label class="span-2">Área o dependencia<input id="newUserUnit" placeholder="Ej. Área de Trata de Personas Cusco" required></label>
         <label class="span-2">Contraseña temporal<input id="newUserPassword" type="password" minlength="8" autocomplete="new-password" required></label>
         <label class="user-active-control span-2"><span>Estado de la cuenta</span><select id="newUserActive"><option value="true">Activa</option><option value="false">Desactivada</option></select></label>
       </div>
@@ -309,7 +310,7 @@
   <script src="catalogos.js?v=20260910-secure-catalogs"></script>
   <script src="catalogos-ui.js?v=20260910-detainee-edit"></script>
   <script src="mapa.js?v=20260910-map-v5"></script>
-  <script src="app.js?v=20260912-institution-v3"></script>
+  <script src="app.js?v=20260912-national-users-v1"></script>
   <script src="auditoria.js?v=20260910-audit-comparison"></script>
   <script src="detenidos.js?v=20260910-map-v1"></script>
   <script src="exportaciones.js?v=20260908-2"></script>
